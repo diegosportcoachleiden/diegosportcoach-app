@@ -834,7 +834,12 @@ async function renderAdmin() {
                   b.lesson_id ===
                   l.id
               );
-
+const ws =
+  (await supabaseClient
+    .from('waitlist')
+    .select('id')
+    .eq('lesson_id', l.id)
+  ).data || [];
           return `
 
             <div class="lesson">
@@ -862,9 +867,8 @@ async function renderAdmin() {
 
                   ·
 
-                  ${bs.length}/${
-                    l.max_participants
-                  }
+                  ${bs.length}/${l.max_participants} deelnemers
+· ${ws.length} reserve
 
                 </div>
 
