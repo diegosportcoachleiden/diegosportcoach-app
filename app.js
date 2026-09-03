@@ -838,7 +838,7 @@ $('#addLesson').onclick =
    TABBLADEN
 ========================= */
 
-$$('.tab').forEach(
+$$('.tab[data-tab]').forEach(
   btn => {
 
     btn.onclick = () => {
