@@ -329,7 +329,7 @@ function render() {
    LESSEN TONEN
 ========================= */
 
-function renderLessons() {
+async function renderLessons() {
 
   const box = $('#lessen');
 const upcomingLessons = lessons
