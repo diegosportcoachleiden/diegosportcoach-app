@@ -4,7 +4,7 @@ const STORE = {
 };
 const SUPABASE_URL = 'https://zjvqbfmxaibjcdpttgmj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZIVgG4DUG8zo6C1hoPkJA_x4YbnKkA';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, 
 const $ = s => documentq.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const fmtDate = d => new Intl.DateTimeFormat('nl-NL',{weekday:'long',day:'numeric',month:'long'}).format(new Date(d+'T12:00:00'));
