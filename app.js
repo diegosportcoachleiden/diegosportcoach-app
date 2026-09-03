@@ -787,8 +787,7 @@ async function renderAdmin() {
               <th>E-mail</th>
               <th>Training tegoed</th>
               <th>Ingeschreven</th>
-
-          </thead>
+              <th>Actie</th>
 
           <tbody>
 
@@ -812,8 +811,25 @@ async function renderAdmin() {
 <td>
   ${(bookings || []).filter(b => b.user_id === m.id).length}
 </td>
-              </tr>
+            
+<td>
+  <button
+    class="secondary"
+    data-credit-minus="${m.id}"
+    type="button"
+  >
+    -1
+  </button>
 
+  <button
+    class="primary"
+    data-credit-plus="${m.id}"
+    type="button"
+  >
+    +1
+  </button>
+</td>
+</tr>
             `).join('')}
 
           </tbody>
@@ -883,7 +899,35 @@ const ws =
 
       : '<p>Nog geen trainingen.</p>';
 }
+async function changeCredit(userId, amount) {
+  const { data: profile, error } = await supabaseClient
+    .from('profiles')
+    .select('rides')
+    .eq('id', userId)
+    .single();
 
+  if (error) {
+    console.error(error);
+    toast('Training tegoed aanpassen mislukt');
+    return;
+  }
+
+  const newRides = Math.max(0, Number(profile.rides || 0) + amount);
+
+  const { error: updateError } = await supabaseClient
+    .from('profiles')
+    .update({ rides: newRides })
+    .eq('id', userId);
+
+  if (updateError) {
+    console.error(updateError);
+    toast('Training tegoed aanpassen mislukt');
+    return;
+  }
+
+  toast('Training tegoed aangepast');
+  await renderAdmin();
+}
 
 /* =========================
    KNOPPEN
@@ -906,7 +950,18 @@ $('#adminLogout').onclick =
 
 $('#addLesson').onclick =
   addLesson;
+$('#adminMembers').onclick = async (e) => {
+  const minusBtn = e.target.closest('[data-credit-minus]');
+  const plusBtn = e.target.closest('[data-credit-plus]');
 
+  if (minusBtn) {
+    await changeCredit(minusBtn.dataset.creditMinus, -1);
+  }
+
+  if (plusBtn) {
+    await changeCredit(plusBtn.dataset.creditPlus, 1);
+  }
+};
 
 /* =========================
    TABBLADEN
