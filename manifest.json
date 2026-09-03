@@ -1,0 +1,9 @@
+{
+  "name": "DiegoSportCoach",
+  "short_name": "DiegoSportCoach",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f4f2",
+  "theme_color": "#111111",
+  "description": "Bootcamplessen, inschrijven en digitale rittenkaart voor DiegoSportCoach."
+}
