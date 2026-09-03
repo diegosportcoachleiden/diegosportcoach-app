@@ -785,8 +785,8 @@ async function renderAdmin() {
             <tr>
               <th>Naam</th>
               <th>E-mail</th>
-              <th>Ritten</th>
-            </tr>
+              <th>Training tegoed</th>
+              <th>Ingeschreven</th>
 
           </thead>
 
@@ -809,7 +809,9 @@ async function renderAdmin() {
                     ${m.rides}
                   </strong>
                 </td>
-
+<td>
+  ${(bookings || []).filter(b => b.user_id === m.id).length}
+</td>
               </tr>
 
             `).join('')}
