@@ -332,8 +332,23 @@ function render() {
 function renderLessons() {
 
   const box = $('#lessen');
-
-  if (!lessons.length) {
+const upcomingLessons = lessons
+  .filter(l => {
+    const dateTime = new Date(
+      `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}`
+    );
+    return dateTime > new Date();
+  })
+  .sort((a, b) => {
+    const aTime = new Date(
+      `${a.lesson_date}T${String(a.lesson_time).slice(0, 5)}`
+    );
+    const bTime = new Date(
+      `${b.lesson_date}T${String(b.lesson_time).slice(0, 5)}`
+    );
+    return aTime - bTime;
+  });
+  if (!upcomingLessons.length) {
 
     box.innerHTML =
       '<div class="card">' +
@@ -345,9 +360,9 @@ function renderLessons() {
 
   box.innerHTML =
     '<div class="card">' +
-    '<h2>Komende bootcamps</h2>' +
+    '<h2>Eerstvolgende bootcamptraining</h2>' +
 
-    lessons.map(l => {
+    upcomingLessons.slice(0, 1).map(l => {
 
       const mine =
         myBookings.includes(l.id);
