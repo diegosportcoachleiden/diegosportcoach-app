@@ -40,7 +40,7 @@ let profile = null;
 let lessons = [];
 let myBookings = [];
 let isAdmin = false;
-
+let myWaitlist = [];
 
 /* =========================
    PROFIEL
@@ -101,7 +101,21 @@ async function loadData() {
       .map(x => x.lesson_id);
   }
 }
+  const {
+    data: waitlistData,
+    error: waitlistError
+  } = await supabaseClient
+    .from('waitlist')
+    .select('lesson_id')
+    .eq('user_id', session.user.id);
 
+  if (waitlistError) {
+    console.error(waitlistError);
+    myWaitlist = [];
+  } else {
+    myWaitlist = (waitlistData || [])
+      .map(x => x.lesson_id);
+  }
 
 /* =========================
    SCHERMEN
@@ -337,7 +351,8 @@ function renderLessons() {
 
       const mine =
         myBookings.includes(l.id);
-
+const waiting =
+  myWaitlist.includes(l.id);
       const count =
         Number(l.booking_count || 0);
 
@@ -375,38 +390,33 @@ function renderLessons() {
             }">
 
               ${
-                mine
-                  ? 'Ingeschreven'
-                  : full
-                  ? 'Vol'
-                  : 'Plek beschikbaar'
-              }
+  mine
+    ? 'Ingeschreven'
+    : waiting
+    ? 'Op reservelijst'
+    : full
+    ? 'Vol'
+    : 'Plek beschikbaar'
+}
 
             </span>
 
           </div>
 
-          <button
-            class="${
-              mine
-                ? 'secondary'
-                : 'primary'
-            }"
-            data-book="${l.id}"
-            ${
-              !mine && full
-                ? 'disabled'
-                : ''
-            }
-          >
-
-            ${
-              mine
-                ? 'Uitschrijven'
-                : 'Inschrijven'
-            }
-
-          </button>
+<button
+  class="${mine ? 'secondary' : 'primary'}"
+  data-book="${l.id}"
+>
+${
+  mine
+    ? 'Uitschrijven'
+    : waiting
+    ? 'Van reservelijst'
+    : full
+    ? 'Reserveplek'
+    : 'Inschrijven'
+}
+</button>
 
         </div>
       `;
@@ -416,18 +426,29 @@ function renderLessons() {
     '</div>';
 
 
-  $$('[data-book]')
-    .forEach(button => {
+$$('[data-book]').forEach(button => {
+  button.onclick = () => {
+    const id = button.dataset.book;
 
-      button.onclick = () => {
+    if (myBookings.includes(id)) {
+      toggleBooking(id);
+    } else if (myWaitlist.includes(id)) {
+      toggleWaitlist(id);
+    } else {
+      const lesson = lessons.find(l => l.id === id);
 
-        toggleBooking(
-          button.dataset.book
-        );
+      const full =
+        Number(lesson?.booking_count || 0) >=
+        Number(lesson?.max_participants || 0);
 
-      };
-
-    });
+      if (full) {
+        toggleWaitlist(id);
+      } else {
+        toggleBooking(id);
+      }
+    }
+  };
+});
 }
 
 
@@ -440,37 +461,85 @@ async function toggleBooking(id) {
   const mine =
     myBookings.includes(id);
 
+  const lesson =
+    lessons.find(l => l.id === id);
+
+  if (!lesson) {
+    toast('Training niet gevonden');
+    return;
+  }
+
+  const count =
+    Number(lesson.booking_count || 0);
+
+  const full =
+    count >= Number(lesson.max_participants);
+
+
+  let action;
+
+  if (mine) {
+    action = 'cancel_booking';
+  } else if (full) {
+    action = 'join_waitlist';
+  } else {
+    action = 'book_lesson';
+  }
+
+
   const { error } =
     await supabaseClient.rpc(
-
-      mine
-        ? 'cancel_booking'
-        : 'book_lesson',
-
+      action,
       {
         p_lesson_id: id
       }
-
     );
 
-  if (error) {
 
+  if (error) {
+    toast(error.message);
+    return;
+  }
+
+
+  if (mine) {
+    toast('Je bent uitgeschreven');
+  } else if (full) {
+    toast('Je staat op de reservelijst');
+  } else {
+    toast('Je bent ingeschreven! 1 training tegoed afgeschreven');
+  }
+
+
+  await loadProfile();
+  await loadData();
+  render();
+}
+async function toggleWaitlist(id) {
+  const waiting = myWaitlist.includes(id);
+
+  const { error } = await supabaseClient.rpc(
+    waiting ? 'cancel_waitlist' : 'join_waitlist',
+    {
+      p_lesson_id: id
+    }
+  );
+
+  if (error) {
     toast(error.message);
     return;
   }
 
   toast(
-    mine
-      ? 'Uitgeschreven • rit teruggezet'
-      : 'Je bent ingeschreven!'
+    waiting
+      ? 'Van reservelijst verwijderd'
+      : 'Je staat op de reservelijst'
   );
 
   await loadProfile();
   await loadData();
-
   render();
 }
-
 
 /* =========================
    MIJN TRAININGEN
