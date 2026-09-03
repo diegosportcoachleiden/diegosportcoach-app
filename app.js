@@ -293,12 +293,12 @@ function render() {
   $('#ridesCount').textContent =
     profile.rides || 0;
 
-  $('#ticketCount').textContent =
-    (profile.rides || 0) +
-    ' rit' +
-    (profile.rides === 1
-      ? ''
-      : 'ten');
+ $('#ticketCount').textContent =
+  (profile.rides || 0) +
+  ' training' +
+  (profile.rides === 1
+    ? ''
+    : 'en'); 
 
   $('#ticketFill').style.width =
     Math.min(
@@ -561,9 +561,8 @@ async function requestRideCard(
     toast(error.message);
     return;
   }
-
-  $('#buyMsg').textContent =
-    `Aanvraag voor ${rides}-rittenkaart is verzonden.`;
+$('#buyMsg').textContent =
+`Aanvraag voor ${rides} bootcamptrainingen tegoed is verzonden`;
 
   $('#buyMsg')
     .classList
