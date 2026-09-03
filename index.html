@@ -1,124 +1,410 @@
 <!doctype html>
 <html lang="nl">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#111111" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+
   <title>DiegoSportCoach</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
   <header class="topbar">
+
     <div>
-      <div class="brand">DIEGO<span>SPORTCOACH</span></div>
-      <div class="tagline">Bootcamp • Rittenkaart • Inschrijven</div>
+      <div class="brand">
+        DIEGO<span>SPORTCOACH</span>
+      </div>
+
+      <div class="tagline">
+        Bootcamp • Rittenkaart • Inschrijven
+      </div>
     </div>
-    <button id="logoutBtn" class="ghost hidden">Uitloggen</button>
+
+    <button id="logoutBtn" class="ghost hidden">
+      Uitloggen
+    </button>
+
   </header>
 
+
   <main class="wrap">
+
+    <!-- INLOGGEN -->
+
     <section id="loginView" class="card auth">
+
       <h1>Welkom 👋</h1>
-      <p>Log in met je naam en e-mailadres. In deze V1-demo wordt je account op dit apparaat bewaard.</p>
+
+      <p>
+        Log in of maak een account aan om je voor bootcamplessen in te schrijven.
+      </p>
+
       <label>Naam</label>
-      <input id="nameInput" placeholder="Voor- en achternaam" />
+
+      <input
+        id="nameInput"
+        type="text"
+        placeholder="Voor- en achternaam"
+      >
+
       <label>E-mailadres</label>
-      <input id="emailInput" type="email" placeholder="naam@email.nl" />
-      <button id="loginBtn" class="primary">Start</button>
-      <button id="adminBtn" class="secondary">Beheerder</button>
+
+      <input
+        id="emailInput"
+        type="email"
+        placeholder="naam@email.nl"
+      >
+
+      <label>Wachtwoord</label>
+
+      <input
+        id="passwordInput"
+        type="password"
+        placeholder="Minimaal 6 tekens"
+      >
+
+      <button
+        id="loginBtn"
+        class="primary"
+        type="button"
+      >
+        Inloggen
+      </button>
+
+      <button
+        id="signUpBtn"
+        class="secondary"
+        type="button"
+      >
+        Account aanmaken
+      </button>
+
+      <p
+        id="authMsg"
+        class="success hidden"
+      ></p>
+
     </section>
+
+
+    <!-- DEELNEMERS APP -->
 
     <section id="appView" class="hidden">
+
       <section class="hero">
+
         <div>
-          <p class="eyebrow">MIJN ACCOUNT</p>
-          <h1 id="welcomeName">Hoi!</h1>
+
+          <p class="eyebrow">
+            MIJN ACCOUNT
+          </p>
+
+          <h1 id="welcomeName">
+            Hoi!
+          </h1>
+
         </div>
+
+
         <div class="rides">
-          <span>Ritten over</span>
-          <strong id="ridesCount">0</strong>
+
+          <span>
+            Ritten over
+          </span>
+
+          <strong id="ridesCount">
+            0
+          </strong>
+
         </div>
+
       </section>
+
+
+      <!-- TABBLADEN -->
 
       <nav class="tabs">
-        <button data-tab="lessen" class="tab active">Lessen</button>
-        <button data-tab="rittenkaart" class="tab">Rittenkaart</button>
-        <button data-tab="mijn" class="tab">Mijn trainingen</button>
+
+        <button
+          data-tab="lessen"
+          class="tab active"
+          type="button"
+        >
+          Lessen
+        </button>
+
+
+        <button
+          data-tab="rittenkaart"
+          class="tab"
+          type="button"
+        >
+          Rittenkaart
+        </button>
+
+
+        <button
+          data-tab="mijn"
+          class="tab"
+          type="button"
+        >
+          Mijn trainingen
+        </button>
+
+
+        <button
+          id="adminTabBtn"
+          class="tab hidden"
+          type="button"
+        >
+          Beheer
+        </button>
+
       </nav>
 
-      <section id="lessen" class="panel"></section>
 
-      <section id="rittenkaart" class="panel hidden">
+      <!-- LESSEN -->
+
+      <section
+        id="lessen"
+        class="panel"
+      ></section>
+
+
+      <!-- RITTENKAART -->
+
+      <section
+        id="rittenkaart"
+        class="panel hidden"
+      >
+
         <div class="card">
-          <h2>Digitale rittenkaart</h2>
+
+          <h2>
+            Digitale rittenkaart
+          </h2>
+
+
           <div class="ticket">
+
             <div>
-              <span>Beschikbaar</span>
-              <strong id="ticketCount">0 ritten</strong>
+
+              <span>
+                Beschikbaar
+              </span>
+
+              <strong id="ticketCount">
+                0 ritten
+              </strong>
+
             </div>
-            <div class="ticketbar"><div id="ticketFill"></div></div>
+
+
+            <div class="ticketbar">
+
+              <div id="ticketFill"></div>
+
+            </div>
+
           </div>
-          <p>Vraag eenvoudig een nieuwe rittenkaart aan. Betaling kan in deze eerste versie via een Tikkie/betaallink die Diego toestuurt.</p>
+
+
+          <p>
+            Vraag hier een nieuwe rittenkaart aan.
+          </p>
+
+
           <div class="buttonrow">
-            <button class="secondary buy" data-rides="5">5-rittenkaart aanvragen</button>
-            <button class="primary buy" data-rides="12">12-rittenkaart aanvragen</button>
+
+            <button
+              class="secondary buy"
+              data-rides="5"
+              type="button"
+            >
+              5-rittenkaart aanvragen
+            </button>
+
+
+            <button
+              class="primary buy"
+              data-rides="12"
+              type="button"
+            >
+              12-rittenkaart aanvragen
+            </button>
+
           </div>
-          <p id="buyMsg" class="success hidden"></p>
+
+
+          <p
+            id="buyMsg"
+            class="success hidden"
+          ></p>
+
         </div>
+
       </section>
 
-      <section id="mijn" class="panel hidden"></section>
+
+      <!-- MIJN TRAININGEN -->
+
+      <section
+        id="mijn"
+        class="panel hidden"
+      ></section>
+
     </section>
 
-    <section id="adminView" class="hidden">
+
+    <!-- BEHEERDER -->
+
+    <section
+      id="adminView"
+      class="hidden"
+    >
+
       <div class="adminhead">
+
         <div>
-          <p class="eyebrow">BEHEER</p>
-          <h1>DiegoSportCoach</h1>
+
+          <p class="eyebrow">
+            BEHEER
+          </p>
+
+          <h1>
+            DiegoSportCoach
+          </h1>
+
         </div>
-        <button id="adminLogout" class="ghost">Terug</button>
+
+
+        <button
+          id="adminLogout"
+          class="ghost"
+          type="button"
+        >
+          Terug
+        </button>
+
       </div>
 
-      <div class="grid2">
-        <section class="card">
-          <h2>Training toevoegen</h2>
-          <label>Datum</label>
-          <input id="lessonDate" type="date" />
-          <label>Tijd</label>
-          <input id="lessonTime" type="time" value="19:30" />
-          <label>Locatie</label>
-          <input id="lessonLocation" placeholder="Bijv. Stevenshof" />
-          <label>Max. deelnemers</label>
-          <input id="lessonMax" type="number" min="1" value="12" />
-          <button id="addLesson" class="primary">Training toevoegen</button>
-        </section>
 
-        <section class="card">
-          <h2>Ritten toevoegen</h2>
-          <label>E-mailadres deelnemer</label>
-          <input id="ridesEmail" type="email" placeholder="naam@email.nl" />
-          <label>Aantal ritten</label>
-          <input id="ridesAdd" type="number" min="1" value="12" />
-          <button id="addRides" class="primary">Ritten bijschrijven</button>
-          <p id="ridesMsg" class="success hidden"></p>
-        </section>
-      </div>
+      <!-- TRAINING TOEVOEGEN -->
 
       <section class="card">
-        <h2>Komende trainingen</h2>
+
+        <h2>
+          Training toevoegen
+        </h2>
+
+
+        <label>
+          Datum
+        </label>
+
+        <input
+          id="lessonDate"
+          type="date"
+        >
+
+
+        <label>
+          Tijd
+        </label>
+
+        <input
+          id="lessonTime"
+          type="time"
+          value="19:30"
+        >
+
+
+        <label>
+          Locatie
+        </label>
+
+        <input
+          id="lessonLocation"
+          type="text"
+          placeholder="Bijv. Stevenshof"
+        >
+
+
+        <label>
+          Max. deelnemers
+        </label>
+
+        <input
+          id="lessonMax"
+          type="number"
+          min="1"
+          value="12"
+        >
+
+
+        <button
+          id="addLesson"
+          class="primary"
+          type="button"
+        >
+          Training toevoegen
+        </button>
+
+      </section>
+
+
+      <!-- KOMENDE TRAININGEN -->
+
+      <section class="card">
+
+        <h2>
+          Komende trainingen
+        </h2>
+
         <div id="adminLessons"></div>
+
       </section>
 
+
+      <!-- DEELNEMERS -->
+
       <section class="card">
-        <h2>Deelnemers</h2>
+
+        <h2>
+          Deelnemers
+        </h2>
+
         <div id="adminMembers"></div>
+
       </section>
+
     </section>
+
   </main>
 
-  <div id="toast" class="toast hidden"></div>
+
+  <!-- MELDINGEN -->
+
+  <div
+    id="toast"
+    class="toast hidden"
+  ></div>
+
+
+  <!-- SUPABASE -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- DIEGOSPORTCOACH APP -->
 
   <script src="app.js"></script>
+
 </body>
+
 </html>
