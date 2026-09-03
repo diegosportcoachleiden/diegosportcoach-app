@@ -100,7 +100,7 @@ async function loadData() {
     myBookings = (bookingData || [])
       .map(x => x.lesson_id);
   }
-}
+
   const {
     data: waitlistData,
     error: waitlistError
@@ -116,7 +116,7 @@ async function loadData() {
     myWaitlist = (waitlistData || [])
       .map(x => x.lesson_id);
   }
-
+}
 /* =========================
    SCHERMEN
 ========================= */
