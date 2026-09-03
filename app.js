@@ -843,7 +843,7 @@ async function renderAdmin() {
   $('#adminLessons').innerHTML =
     lessons.length
 
-      ? lessons.map(l => {
+      ? await Promise.all(lessons.map(async l => {
 
           const bs =
             (bookings || [])
@@ -895,7 +895,7 @@ const ws =
             </div>
           `;
 
-        }).join('')
+      })).then(items => items.join(''))
 
       : '<p>Nog geen trainingen.</p>';
 }
