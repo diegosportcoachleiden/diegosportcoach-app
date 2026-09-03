@@ -1017,19 +1017,23 @@ $$('.tab[data-tab]').forEach(
    RITTENKAART KNOPPEN
 ========================= */
 
-$$('.buy').forEach(
-  btn => {
+$$('.buy').forEach(btn => {
+  btn.onclick = async () => {
+    const rides = Number(btn.dataset.rides);
 
-    btn.onclick = () => {
+    await requestRideCard(rides);
 
-      requestRideCard(
-        btn.dataset.rides
-      );
+    if (rides === 5) {
+      window.location.href =
+        'https://betaalverzoek.rabobank.nl/betaalverzoek/?id=TJssJBxBTbGjXTnYr7Tvnw';
+    }
 
-    };
-
-  }
-);
+    if (rides === 12) {
+      window.location.href =
+        'https://betaalverzoek.rabobank.nl/betaalverzoek/?id=9EANg5D3QCCgbQpY73u2Tw';
+    }
+  };
+});
 
 
 /* =========================
