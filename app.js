@@ -753,22 +753,23 @@ async function addLesson() {
 
 async function renderAdmin() {
 
-  const {
-    data: members,
-    error: memberError
-  } =
-    await supabaseClient
-      .from('profiles')
-      .select(
-        'id,name,email,rides'
-      )
-      .order('name');
+  
+const {
+  data: members,
+  error: memberError
+} = await supabaseClient
+  .from('profiles')
+  .select(
+    'id,name,email,rides'
+  )
+  .order('name');
 
-  if (memberError) {
-    console.error(
-      memberError
-    );
-  }
+if (memberError) {
+  console.error(
+    memberError
+  );
+}
+ 
 
 
   const {
