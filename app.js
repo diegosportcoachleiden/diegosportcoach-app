@@ -940,6 +940,55 @@ const ws =
 
       : '<p>Nog geen trainingen.</p>';
 }
+async function saveAnnouncement() {
+  if (!isAdmin) {
+    toast('Geen toegang');
+    return;
+  }
+
+  const title = $('#adminAnnouncementTitle').value.trim();
+  const message = $('#adminAnnouncementMessage').value.trim();
+  const startsAt = $('#adminAnnouncementStarts').value || new Date().toISOString().slice(0, 10);
+  const endsAt = $('#adminAnnouncementEnds').value || null;
+  const active = $('#adminAnnouncementActive').checked;
+
+  if (!title || !message) {
+    toast('Vul titel en bericht in');
+    return;
+  }
+
+  const { error: deactivateError } = await supabaseClient
+    .from('announcements')
+    .update({ active: false })
+    .eq('active', true);
+
+  if (deactivateError) {
+    console.error(deactivateError);
+    toast('Mededeling opslaan mislukt');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('announcements')
+    .insert({
+      title,
+      message,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      active
+    });
+
+  if (error) {
+    console.error(error);
+    toast('Mededeling opslaan mislukt');
+    return;
+  }
+
+  toast('Mededeling opgeslagen');
+
+  await loadData();
+  render();
+}
 async function changeCredit(userId, amount) {
   const { data: profile, error } = await supabaseClient
     .from('profiles')
@@ -988,7 +1037,7 @@ $('#adminTabBtn').onclick =
 
 $('#adminLogout').onclick =
   showApp;
-
+$('#saveAnnouncementBtn').onclick = saveAnnouncement;
 $('#addLesson').onclick =
   addLesson;
 $('#adminMembers').onclick = async (e) => {
