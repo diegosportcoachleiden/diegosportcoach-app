@@ -130,7 +130,52 @@
   <h2 id="announcementTitle"></h2>
   <p id="announcementMessage"></p>
 </section>
+<section id="announcementAdmin" class="card hidden">
+  <p class="eyebrow">⚙️ BEHEER MEDEDELING</p>
 
+  <label for="adminAnnouncementTitle">Titel</label>
+  <input
+    id="adminAnnouncementTitle"
+    type="text"
+    placeholder="Bijvoorbeeld: Vakantie"
+  >
+
+  <label for="adminAnnouncementMessage">Bericht</label>
+  <textarea
+    id="adminAnnouncementMessage"
+    rows="4"
+    placeholder="Typ hier je mededeling..."
+  ></textarea>
+
+  <label for="adminAnnouncementStarts">Vanaf</label>
+  <input
+    id="adminAnnouncementStarts"
+    type="date"
+  >
+
+  <label for="adminAnnouncementEnds">Tot en met</label>
+  <input
+    id="adminAnnouncementEnds"
+    type="date"
+  >
+
+  <label>
+    <input
+      id="adminAnnouncementActive"
+      type="checkbox"
+      checked
+    >
+    Mededeling actief
+  </label>
+
+  <button
+    id="saveAnnouncementBtn"
+    class="primary"
+    type="button"
+  >
+    Mededeling opslaan
+  </button>
+</section>
       <!-- TABBLADEN -->
 
       <nav class="tabs">
