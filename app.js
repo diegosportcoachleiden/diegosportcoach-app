@@ -116,6 +116,31 @@ async function loadData() {
     myWaitlist = (waitlistData || [])
       .map(x => x.lesson_id);
   }
+  // Mededeling ophalen
+const today = new Date().toISOString().slice(0, 10);
+
+const { data: announcements, error: announcementError } =
+  await supabaseClient
+    .from('announcements')
+    .select('title, message, starts_at, ends_at, active, created_at')
+    .eq('active', true)
+    .lte('starts_at', today)
+    .or(`ends_at.is.null,ends_at.gte.${today}`)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+const announcementBox = $('#announcementBox');
+
+if (announcementError) {
+  console.error('Mededeling ophalen mislukt:', announcementError);
+  announcementBox.classList.add('hidden');
+} else if (announcements && announcements.length > 0) {
+  $('#announcementTitle').textContent = announcements[0].title;
+  $('#announcementMessage').textContent = announcements[0].message;
+  announcementBox.classList.remove('hidden');
+} else {
+  announcementBox.classList.add('hidden');
+}
 }
 /* =========================
    SCHERMEN
