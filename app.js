@@ -549,7 +549,18 @@ async function toggleBooking(id) {
     toast('Training niet gevonden');
     return;
   }
+const lessonStart = new Date(
+  `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
+);
 
+const signupDeadline = new Date(
+  lessonStart.getTime() - 30 * 60 * 1000
+);
+
+if (!mine && new Date() > signupDeadline) {
+  toast('Inschrijven gesloten');
+  return;
+}
   const count =
     Number(lesson.booking_count || 0);
 
