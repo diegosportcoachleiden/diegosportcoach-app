@@ -1040,7 +1040,7 @@ $('#adminLogout').onclick =
 $('#saveAnnouncementBtn').onclick = saveAnnouncement;
 $('#addLesson').onclick =
   addLesson;
-$('#adminMembers').onclick = async (e) => {
+$('#adminCustomers').onclick = async (e) => {
   const minusBtn = e.target.closest('[data-credit-minus]');
   const plusBtn = e.target.closest('[data-credit-plus]');
 
