@@ -299,7 +299,25 @@ async function signIn() {
 
   await refreshSession();
 }
+async function forgotPassword() {
+  const email = $('#emailInput').value.trim();
 
+  if (!email) {
+    toast('Vul eerst je e-mailadres in');
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+
+  if (error) {
+    toast('Resetlink versturen mislukt: ' + error.message);
+    return;
+  }
+
+  toast('Resetlink verstuurd! Controleer je e-mail.');
+}
 
 /* =========================
    UITLOGGEN
@@ -1018,7 +1036,29 @@ async function changeCredit(userId, amount) {
   toast('Training tegoed aangepast');
   await renderAdmin();
 }
+async function forgotPassword() {
+  const email = $('#emailInput').value.trim().toLowerCase();
 
+  if (!email) {
+    toast('Vul eerst je e-mailadres in');
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(
+    email,
+    {
+      redirectTo: 'https://diegosportcoachleiden.github.io/diegosportcoach-app/'
+    }
+  );
+
+  if (error) {
+    console.error(error);
+    toast('Herstelmail versturen mislukt');
+    return;
+  }
+
+  toast('Herstelmail verstuurd. Controleer je inbox.');
+}
 /* =========================
    KNOPPEN
 ========================= */
@@ -1028,7 +1068,7 @@ $('#signUpBtn').onclick =
 
 $('#loginBtn').onclick =
   signIn;
-
+$('#forgotPasswordBtn').onclick = forgotPassword;
 $('#logoutBtn').onclick =
   signOut;
 
