@@ -308,7 +308,7 @@ async function forgotPassword() {
   }
 
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin
+  redirectTo: 'https://diegosportcoachleiden.github.io/diegosportcoach-app/'
   });
 
   if (error) {
@@ -318,7 +318,30 @@ async function forgotPassword() {
 
   toast('Resetlink verstuurd! Controleer je e-mail.');
 }
+async function saveNewPassword() {
+  const password = $('#newPasswordInput').value;
 
+  if (password.length < 6) {
+    toast('Wachtwoord moet minimaal 6 tekens zijn');
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.updateUser({
+    password: password
+  });
+
+  if (error) {
+    toast('Wachtwoord wijzigen mislukt: ' + error.message);
+    return;
+  }
+
+  toast('Wachtwoord succesvol gewijzigd!');
+
+  $('#resetPasswordView').classList.add('hidden');
+  $('#loginView').classList.remove('hidden');
+
+  await supabaseClient.auth.signOut();
+}
 /* =========================
    UITLOGGEN
 ========================= */
@@ -1069,6 +1092,7 @@ $('#signUpBtn').onclick =
 $('#loginBtn').onclick =
   signIn;
 $('#forgotPasswordBtn').onclick = forgotPassword;
+$('#saveNewPasswordBtn').onclick = saveNewPassword;
 $('#logoutBtn').onclick =
   signOut;
 
@@ -1161,7 +1185,14 @@ supabaseClient.auth
       _event,
       newSession
     ) => {
-
+if (_event === 'PASSWORD_RECOVERY') {
+  $('#loginView').classList.add('hidden');
+  $('#appView').classList.add('hidden');
+  $('#adminView').classList.add('hidden');
+  $('#logoutBtn').classList.add('hidden');
+  $('#resetPasswordView').classList.remove('hidden');
+  return;
+}
       session =
         newSession;
 
