@@ -28,4 +28,58 @@ textarea {
   resize: vertical;
   box-sizing: border-box;
 }
-  
+/* KLANTENOVERZICHT MOBIEL */
+@media (max-width: 700px) {
+  #adminCustomers table,
+  #adminCustomers tbody,
+  #adminCustomers tr,
+  #adminCustomers td {
+    display: block;
+    width: 100%;
+  }
+
+  #adminCustomers thead {
+    display: none;
+  }
+
+  #adminCustomers tr {
+    padding: 16px 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  #adminCustomers td {
+    padding: 5px 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+
+  #adminCustomers td:nth-child(1) {
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  #adminCustomers td:nth-child(2) {
+    color: #6d6d6d;
+    font-size: 13px;
+  }
+
+  #adminCustomers td:nth-child(3)::before {
+    content: "Trainingstegoed: ";
+    font-weight: 700;
+  }
+
+  #adminCustomers td:nth-child(4)::before {
+    content: "Ingeschreven: ";
+    font-weight: 700;
+  }
+
+  #adminCustomers td:nth-child(5) {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  #adminCustomers td:nth-child(5) button {
+    min-width: 55px;
+  }
+}
