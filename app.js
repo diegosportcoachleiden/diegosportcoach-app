@@ -1146,45 +1146,31 @@ $('#adminCustomers').onclick = async (e) => {
    TABBLADEN
 ========================= */
 
-$$('.tab[data-tab]').forEach(
-  btn => {
+$$('.tab[data-tab]').forEach(btn => {
+  btn.onclick = () => {
+    $$('.tab').forEach(b => {
+      b.classList.remove('active');
+    });
 
-    btn.onclick = () => {
+    btn.classList.add('active');
 
-      $$('.tab')
-        .forEach(
-          b =>
-            b.classList
-              .remove('active')
-        );
+    $$('.panel').forEach(p => {
+      p.classList.add('hidden');
+    });
 
-      btn.classList
-        .add('active');
+    $('#' + btn.dataset.tab).classList.remove('hidden');
 
-      $$('.panel')
-        .forEach(
-          p =>
-            p.classList
-              .add('hidden')
-        );
+    const handleiding = $('#handleiding');
 
-      $('#' + btn.dataset.tab)
-        .classList
-        .remove('hidden');
-    };
-const handleiding = $('#handleiding');
-
-if (handleiding) {
-  if (btn.dataset.tab === 'lessen') {
-    handleiding.classList.remove('hidden');
-  } else {
-    handleiding.classList.add('hidden');
-  }
-}
-    
-  }
-);
-
+    if (handleiding) {
+      if (btn.dataset.tab === 'lessen') {
+        handleiding.classList.remove('hidden');
+      } else {
+        handleiding.classList.add('hidden');
+      }
+    }
+  };
+});
 
 /* =========================
    RITTENKAART KNOPPEN
