@@ -1175,11 +1175,13 @@ $$('.tab[data-tab]').forEach(
 const handleiding = $('#handleiding');
 
 if (handleiding) {
-  handleiding.classList.toggle(
-    'hidden',
-    btn.dataset.tab !== 'lessen'
-  );
+  if (btn.dataset.tab === 'lessen') {
+    handleiding.classList.remove('hidden');
+  } else {
+    handleiding.classList.add('hidden');
+  }
 }
+    
   }
 );
 
