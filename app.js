@@ -1016,7 +1016,7 @@ async function saveAnnouncement() {
 
   if (deactivateError) {
     console.error(deactivateError);
-    toast('Mededeling opslaan mislukt');
+    toast(deactivateError.message);
     return;
   }
 
@@ -1032,7 +1032,7 @@ async function saveAnnouncement() {
 
   if (error) {
     console.error(error);
-    toast('Mededeling opslaan mislukt');
+    toast(error.message);
     return;
   }
 
