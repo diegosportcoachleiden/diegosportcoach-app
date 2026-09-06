@@ -1041,6 +1041,40 @@ async function saveAnnouncement() {
   await loadData();
   render();
 }
+async function deleteAnnouncement() {
+  if (!isAdmin) {
+    toast('Geen toegang');
+    return;
+  }
+
+  const confirmed = confirm(
+    'Weet je zeker dat je de mededeling wilt verwijderen?'
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient
+    .from('announcements')
+    .update({ active: false })
+    .eq('active', true);
+
+  if (error) {
+    console.error(error);
+    toast('Mededeling verwijderen mislukt');
+    return;
+  }
+
+  $('#adminAnnouncementTitle').value = '';
+  $('#adminAnnouncementMessage').value = '';
+  $('#adminAnnouncementStarts').value = '';
+  $('#adminAnnouncementEnds').value = '';
+  $('#adminAnnouncementActive').checked = false;
+
+  toast('Mededeling verwijderd');
+
+  await loadData();
+  render();
+}
 async function changeCredit(userId, amount) {
   const { data: profile, error } = await supabaseClient
     .from('profiles')
@@ -1092,6 +1126,7 @@ $('#adminTabBtn').onclick =
 $('#adminLogout').onclick =
   showApp;
 $('#saveAnnouncementBtn').onclick = saveAnnouncement;
+$('#deleteAnnouncementBtn').onclick = deleteAnnouncement;
 $('#addLesson').onclick =
   addLesson;
 $('#adminCustomers').onclick = async (e) => {
