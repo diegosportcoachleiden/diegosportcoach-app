@@ -1172,7 +1172,14 @@ $$('.tab[data-tab]').forEach(
         .classList
         .remove('hidden');
     };
+const handleiding = $('#handleiding');
 
+if (handleiding) {
+  handleiding.classList.toggle(
+    'hidden',
+    btn.dataset.tab !== 'lessen'
+  );
+}
   }
 );
 
