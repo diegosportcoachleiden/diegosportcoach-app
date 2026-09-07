@@ -62,6 +62,22 @@ async function loadProfile() {
 
   profile = data;
   isAdmin = !!data.is_admin;
+  if (
+  profile.credit_expires_at &&
+  Number(profile.rides || 0) > 0 &&
+  new Date(profile.credit_expires_at) < new Date()
+) {
+  const { error: expireError } = await supabaseClient
+    .from('profiles')
+    .update({ rides: 0 })
+    .eq('id', session.user.id);
+
+  if (expireError) {
+    console.error('Verlopen tegoed op 0 zetten mislukt:', expireError);
+  } else {
+    profile.rides = 0;
+  }
+}
 }
 
 
@@ -566,6 +582,18 @@ async function toggleBooking(id) {
     toast('Training niet gevonden');
     return;
   }
+  if (
+  !mine &&
+  profile.credit_expires_at &&
+  new Date(profile.credit_expires_at) < new Date()
+) {
+  toast('Je trainingstegoed is verlopen');
+  return;
+}
+  if (!mine && Number(profile.rides || 0) <= 0) {
+  toast('Je hebt geen trainingstegoed meer');
+  return;
+}
 const lessonStart = new Date(
   `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
 );
