@@ -854,7 +854,7 @@ const {
 } = await supabaseClient
   .from('profiles')
   .select(
-    'id,name,email,rides'
+    'id,name,email,rides,credit_expires_at'
   )
   .order('name');
 
@@ -895,9 +895,10 @@ $('#adminCustomers').innerHTML =
             <tr>
               <th>Naam</th>
               <th>E-mail</th>
-              <th>Training tegoed</th>
-              <th>Ingeschreven</th>
-              <th>Actie</th>
+            <th>Training tegoed</th>
+<th>Geldig t/m</th>
+<th>Ingeschreven</th>
+<th>Actie</th>
 
           <tbody>
 
@@ -918,6 +919,17 @@ $('#adminCustomers').innerHTML =
                     ${m.rides}
                   </strong>
                 </td>
+                <td>
+  ${
+    m.credit_expires_at && Number(m.rides || 0) > 0
+      ? new Date(m.credit_expires_at).toLocaleDateString('nl-NL', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        })
+      : '-'
+  }
+</td>
 <td>
   ${(bookings || []).filter(b => b.user_id === m.id).length}
 </td>
@@ -1008,6 +1020,27 @@ const ws =
       })).then(items => items.join(''))
 
       : '<p>Nog geen trainingen.</p>';
+}
+const customerSearch = $('#customerSearch');
+
+if (customerSearch) {
+  customerSearch.oninput = () => {
+    const zoekterm = customerSearch.value.trim().toLowerCase();
+
+    $$('#adminCustomers tbody tr').forEach(row => {
+      const naam = row.children[0]?.textContent.toLowerCase() || '';
+      const email = row.children[1]?.textContent.toLowerCase() || '';
+
+      const achternaam =
+        naam.trim().split(/\s+/).slice(-1)[0] || '';
+
+      row.style.display =
+        achternaam.includes(zoekterm) ||
+        email.includes(zoekterm)
+          ? ''
+          : 'none';
+    });
+  };
 }
 async function saveAnnouncement() {
   if (!isAdmin) {
