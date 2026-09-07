@@ -50,7 +50,7 @@ async function loadProfile() {
 
   const { data, error } = await supabaseClient
     .from('profiles')
-    .select('id,name,email,rides,is_admin')
+    .select('id,name,email,rides,is_admin,credit_expires_at')
     .eq('id', session.user.id)
     .single();
 
