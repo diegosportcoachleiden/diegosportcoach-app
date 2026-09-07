@@ -1,4 +1,4 @@
-const CACHE = 'dsc-v6';
+const CACHE = 'dsc-v7';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
