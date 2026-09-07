@@ -152,11 +152,7 @@ function showLogin() {
   $('#appView').classList.add('hidden');
   $('#adminView').classList.add('hidden');
   $('#logoutBtn').classList.add('hidden');
-  const handleiding = $('#handleiding');
-
-if (handleiding) {
-  handleiding.classList.add('hidden');
-}
+  
 }
 
 
