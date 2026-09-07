@@ -1160,10 +1160,8 @@ $$('.tab[data-tab]').forEach(btn => {
     });
 
     $('#' + btn.dataset.tab).classList.remove('hidden');
-
-    const handleiding = $('#handleiding');
-
-  
+  };
+});
 
 /* =========================
    RITTENKAART KNOPPEN
