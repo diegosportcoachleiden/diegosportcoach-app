@@ -1093,7 +1093,14 @@ async function changeCredit(userId, amount) {
 
   const { error: updateError } = await supabaseClient
     .from('profiles')
-    .update({ rides: newRides })
+    .update({
+  rides: newRides,
+  ...(amount > 0 && {
+    credit_expires_at: new Date(
+      new Date().setFullYear(new Date().getFullYear() + 1)
+    ).toISOString()
+  })
+})
     .eq('id', userId);
 
   if (updateError) {
