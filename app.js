@@ -398,7 +398,7 @@ function render() {
 
 async function renderLessons() {
 
-  const box = $('#lessen');
+ const box = $('#lessenContent');
 const upcomingLessons = lessons
   .filter(l => {
     const dateTime = new Date(
