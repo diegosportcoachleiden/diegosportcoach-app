@@ -380,7 +380,23 @@ function render() {
   (profile.rides === 1
     ? ''
     : 'en'); 
+const expiryEl = $('#creditExpiry');
 
+if (expiryEl) {
+  if (profile.credit_expires_at && (profile.rides || 0) > 0) {
+    const expiryDate = new Date(profile.credit_expires_at);
+
+    expiryEl.textContent =
+      'Geldig t/m: ' +
+      expiryDate.toLocaleDateString('nl-NL', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+  } else {
+    expiryEl.textContent = 'Geldig t/m: -';
+  }
+}
   $('#ticketFill').style.width =
     Math.min(
       100,
