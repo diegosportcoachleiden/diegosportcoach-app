@@ -897,7 +897,6 @@ $('#adminCustomers').innerHTML =
               <th>E-mail</th>
             <th>Training tegoed</th>
 <th>Geldig t/m</th>
-<th>Ingeschreven</th>
 <th>Actie</th>
 
           <tbody>
@@ -906,9 +905,9 @@ $('#adminCustomers').innerHTML =
 
               <tr>
 
-                <td>
-                  ${esc(m.name)}
-                </td>
+           <td>
+  ${esc(m.name)}
+</td>
 
                 <td>
                   ${esc(m.email)}
@@ -930,9 +929,7 @@ $('#adminCustomers').innerHTML =
       : '-'
   }
 </td>
-<td>
-  ${(bookings || []).filter(b => b.user_id === m.id).length}
-</td>
+
             
 <td>
   <button
