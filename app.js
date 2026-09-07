@@ -1167,15 +1167,7 @@ $$('.tab[data-tab]').forEach(btn => {
 
     const handleiding = $('#handleiding');
 
-    if (handleiding) {
-      if (btn.dataset.tab === 'lessen') {
-        handleiding.classList.remove('hidden');
-      } else {
-        handleiding.classList.add('hidden');
-      }
-    }
-  };
-});
+  
 
 /* =========================
    RITTENKAART KNOPPEN
