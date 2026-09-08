@@ -461,7 +461,7 @@ const upcomingLessons = lessons
     '<div class="card">' +
     '<h2>Eerstvolgende bootcamptraining</h2>' +
 
-    upcomingLessons.slice(0, 1).map(l => {
+    upcomingLessons.map(l => {
 
       const mine =
         myBookings.includes(l.id);
