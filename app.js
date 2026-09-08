@@ -885,7 +885,9 @@ const {
     'id,name,email,rides,credit_expires_at'
   )
   .order('name');
-
+const membersById = Object.fromEntries(
+  (members || []).map(member => [member.id, member])
+);
 if (memberError) {
   console.error(
     memberError
@@ -999,6 +1001,13 @@ $('#adminCustomers').innerHTML =
                   b.lesson_id ===
                   l.id
               );
+const attendees = bs.map(booking => {
+  const member = membersById[booking.user_id];
+
+  return member
+    ? member.name || member.email
+    : 'Onbekende deelnemer';
+});
 const ws =
   (await supabaseClient
     .from('waitlist')
@@ -1034,7 +1043,12 @@ const ws =
 
                   ${bs.length}/${l.max_participants} deelnemers
 · ${ws.length} reserve
-
+${attendees.length
+  ? `<div class="meta"><strong>Aangemeld:</strong><br>${attendees
+      .map(name => `• ${esc(name)}`)
+      .join('<br>')}</div>`
+  : '<div class="meta"><strong>Aangemeld:</strong> niemand</div>'
+}
                 </div>
 
               </div>
