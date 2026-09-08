@@ -461,7 +461,17 @@ const upcomingLessons = lessons
     '<div class="card">' +
     '<h2>Eerstvolgende bootcamptraining</h2>' +
 
-    upcomingLessons.map(l => {
+  const firstLesson = upcomingLessons[0];
+
+const displayLessons =
+  firstLesson &&
+  new Date(`${firstLesson.lesson_date}T12:00:00`).getDay() === 3
+    ? upcomingLessons.filter(
+        l => l.lesson_date === firstLesson.lesson_date
+      )
+    : upcomingLessons.slice(0, 1);
+
+displayLessons.map(l => {
 
       const mine =
         myBookings.includes(l.id);
