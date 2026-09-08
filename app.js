@@ -748,7 +748,11 @@ function renderMine() {
 async function requestRideCard(
   rides
 ) {
-
+if (Number(rides) === 1) {
+  window.location.href =
+    'https://betaalverzoek.rabobank.nl/betaalverzoek/?id=pxnbV_fjTNi3UrUkhqZ0Yg';
+  return;
+}
   const { error } =
     await supabaseClient
       .from('ride_requests')
