@@ -457,11 +457,7 @@ const upcomingLessons = lessons
     return;
   }
 
-  box.innerHTML =
-    '<div class="card">' +
-    '<h2>Eerstvolgende bootcamptraining</h2>' +
-
-  const firstLesson = upcomingLessons[0];
+const firstLesson = upcomingLessons[0];
 
 const displayLessons =
   firstLesson &&
@@ -471,7 +467,11 @@ const displayLessons =
       )
     : upcomingLessons.slice(0, 1);
 
-displayLessons.map(l => {
+box.innerHTML =
+  '<div class="card">' +
+  '<h2>Eerstvolgende bootcamptraining</h2>' +
+
+  displayLessons.map(l => {
 
       const mine =
         myBookings.includes(l.id);
