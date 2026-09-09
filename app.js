@@ -991,6 +991,13 @@ $('#adminCustomers').innerHTML =
   >
     +1
   </button>
+  <button
+  class="danger"
+  data-delete-customer="${m.id}"
+  type="button"
+>
+  Verwijderen
+</button>
 </td>
 </tr>
             `).join('')}
@@ -1214,6 +1221,61 @@ async function changeCredit(userId, amount) {
   toast('Training tegoed aangepast');
   await renderAdmin();
 }
+
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-delete-customer]');
+
+  if (!btn) return;
+
+  const customerId = btn.dataset.deleteCustomer;
+
+  if (!isAdmin) {
+    toast('Alleen de beheerder kan klanten verwijderen');
+    return;
+  }
+
+  if (customerId === session?.user?.id) {
+    toast('Je kunt je eigen beheerdersaccount niet verwijderen');
+    return;
+  }
+
+  const zeker = window.confirm(
+    'Weet je zeker dat je deze klant volledig wilt verwijderen?\n\n' +
+    'Het account, trainingstegoed, inschrijvingen en reserveplekken worden definitief verwijderd.'
+  );
+
+  if (!zeker) return;
+
+  const oudeTekst = btn.textContent;
+
+  btn.disabled = true;
+  btn.textContent = 'Verwijderen...';
+
+  const { error } = await supabaseClient.rpc(
+    'admin_delete_customer',
+    {
+      p_user_id: customerId
+    }
+  );
+
+  if (error) {
+    console.error('Klant verwijderen mislukt:', error);
+    toast('Verwijderen mislukt: ' + error.message);
+
+    btn.disabled = false;
+    btn.textContent = oudeTekst;
+    return;
+  }
+
+  const rij = btn.closest('tr');
+
+  if (rij) {
+    rij.remove();
+  }
+
+  toast('Klant volledig verwijderd');
+});
 
   
 /* =========================
