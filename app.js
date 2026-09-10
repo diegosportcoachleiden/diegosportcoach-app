@@ -1,10 +1,11 @@
 const SUPABASE_URL = 'https://zjvqbfmxaibjcdpttgmj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZIVgG4DUG8zo6C1hoPkJA_x4YbnKkA';
-const VAPID_PUBLIC_KEY = "BKP8EsZ015x4JfyYYBwq2iJKbcjcEl0JaqrQ93w-9ddBTI_3UaZCWO6kSEulSnEnleB7T9HBKkNAIJ_tzo2DANo", 
+
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
+
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
@@ -1400,19 +1401,23 @@ if (_event === 'PASSWORD_RECOVERY') {
 const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
 if (enableNotificationsBtn) {
-  enableNotificationsBtn.addEventListener('click', async () => {
-    try {
-      const permission = await Notification.requestPermission();
+  enableNotificationsBtn.addEventListener('click', () => {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-      if (permission === 'granted') {
-        alert('Meldingen zijn toegestaan ✅');
-      } else {
-        alert('Meldingen zijn niet toegestaan.');
+    OneSignalDeferred.push(async function (OneSignal) {
+      try {
+        await OneSignal.Notifications.requestPermission();
+
+        if (OneSignal.Notifications.permission) {
+          await OneSignal.User.PushSubscription.optIn();
+          alert('Meldingen staan aan ✅');
+        } else {
+          alert('Meldingen zijn nog niet toegestaan.');
+        }
+      } catch (error) {
+        alert('Fout bij meldingen: ' + error.message);
+        console.error(error);
       }
-    } catch (error) {
-      alert('Fout bij meldingen: ' + error.message);
-    }
+    });
   });
-}
-
-refreshSession();
+}refreshSession();
