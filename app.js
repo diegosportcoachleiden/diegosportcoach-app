@@ -1402,7 +1402,7 @@ const enableNotificationsBtn = document.getElementById('enableNotificationsBtn')
 
 if (enableNotificationsBtn) {
   enableNotificationsBtn.addEventListener('click', () => {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
+  alert('Meldingenknop werkt');    window.OneSignalDeferred = window.OneSignalDeferred || [];
 
     OneSignalDeferred.push(async function (OneSignal) {
       try {
