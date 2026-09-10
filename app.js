@@ -1,6 +1,6 @@
 const SUPABASE_URL = 'https://zjvqbfmxaibjcdpttgmj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZIVgG4DUG8zo6C1hoPkJA_x4YbnKkA';
-
+const VAPID_PUBLIC_KEY = 'BKP8EsZ015x4JfyYYBwq2iJKbcjcEl0JaqrQ93w-9ddBTI_3UaZCWO6kSEulSnEnleB7T9HBKkNAIJ_tzo2DANo';
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
