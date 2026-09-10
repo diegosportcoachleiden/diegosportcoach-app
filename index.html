@@ -1,8 +1,7 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer onload="alert('OneSignal SDK geladen')" onerror="alert('OneSignal SDK NIET geladen')"></script><script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
   await OneSignal.init({
