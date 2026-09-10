@@ -1401,24 +1401,19 @@ if (_event === 'PASSWORD_RECOVERY') {
 const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
 if (enableNotificationsBtn) {
-  enableNotificationsBtn.addEventListener('click', () => {
-  alert('Meldingenknop werkt');    window.OneSignalDeferred = window.OneSignalDeferred || [];
+  enableNotificationsBtn.addEventListener('click', async () => {
+    try {
+      const permission = await Notification.requestPermission();
 
-    OneSignalDeferred.push(async function (OneSignal) {
-      alert('OneSignal geladen');
-      try {
-        await OneSignal.Notifications.requestPermission();
-
-        if (OneSignal.Notifications.permission) {
-          await OneSignal.User.PushSubscription.optIn();
-          alert('Meldingen staan aan ✅');
-        } else {
-          alert('Meldingen zijn nog niet toegestaan.');
-        }
-      } catch (error) {
-        alert('Fout bij meldingen: ' + error.message);
-        console.error(error);
+      if (permission === 'granted') {
+        alert('Meldingen zijn toegestaan ✅');
+      } else {
+        alert('Meldingen zijn niet toegestaan.');
       }
-    });
+    } catch (error) {
+      alert('Fout bij meldingen: ' + error.message);
+    }
   });
-}refreshSession();
+}
+
+refreshSession();
