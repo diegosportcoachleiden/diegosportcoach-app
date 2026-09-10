@@ -1,11 +1,10 @@
 const SUPABASE_URL = 'https://zjvqbfmxaibjcdpttgmj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZIVgG4DUG8zo6C1hoPkJA_x4YbnKkA';
-
+const VAPID_PUBLIC_KEY = "BE_h9E8Xg1aLJJZEQ9eRPmiwAWdJGBN9uHHzdFWlbD2GTXUJpgLUYe4zMVNbs5npoNrhWnqEM-Y1XUJXM-XOiio",
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
-
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
