@@ -1401,23 +1401,66 @@ if (_event === 'PASSWORD_RECOVERY') {
 const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
 if (enableNotificationsBtn) {
-  enableNotificationsBtn.addEventListener('click', () => {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-
-    OneSignalDeferred.push(async function (OneSignal) {
-      try {
-        await OneSignal.Notifications.requestPermission();
-
-        if (OneSignal.Notifications.permission) {
-          await OneSignal.User.PushSubscription.optIn();
-          alert('Meldingen staan aan ✅');
-        } else {
-          alert('Meldingen zijn nog niet toegestaan.');
-        }
-      } catch (error) {
-        alert('Fout bij meldingen: ' + error.message);
-        console.error(error);
+  enableNotificationsBtn.addEventListener('click', async () => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('Pushmeldingen worden op dit apparaat niet ondersteund.');
+        return;
       }
-    });
+
+      const permission = await Notification.requestPermission();
+
+      if (permission !== 'granted') {
+        alert('Meldingen zijn niet toegestaan.');
+        return;
+      }
+
+      const urlBase64ToUint8Array = base64String => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+
+        const rawData = atob(base64);
+
+        return Uint8Array.from(
+          [...rawData].map(char => char.charCodeAt(0))
+        );
+      };
+
+      const registration = await navigator.serviceWorker.ready;
+
+      let subscription =
+        await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+
+      const subscriptionData = subscription.toJSON();
+
+      const { error } = await supabaseClient
+        .from('push_subscriptions')
+        .upsert({
+          user_id: session.user.id,
+          endpoint: subscription.endpoint,
+          p256dh: subscriptionData.keys.p256dh,
+          auth: subscriptionData.keys.auth
+        }, {
+          onConflict: 'endpoint'
+        });
+
+      if (error) throw error;
+
+      alert('Meldingen staan aan ✅');
+
+    } catch (error) {
+      console.error(error);
+      alert('Fout bij meldingen: ' + error.message);
+    }
   });
-}refreshSession();
+  }
+refreshSession();
