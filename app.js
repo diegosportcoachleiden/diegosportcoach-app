@@ -1405,6 +1405,7 @@ if (enableNotificationsBtn) {
   alert('Meldingenknop werkt');    window.OneSignalDeferred = window.OneSignalDeferred || [];
 
     OneSignalDeferred.push(async function (OneSignal) {
+      alert('OneSignal geladen');
       try {
         await OneSignal.Notifications.requestPermission();
 
