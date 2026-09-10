@@ -1405,8 +1405,19 @@ if (enableNotificationsBtn) {
     window.OneSignalDeferred = window.OneSignalDeferred || [];
 
     OneSignalDeferred.push(async function (OneSignal) {
-      await OneSignal.Notifications.requestPermission();
+      try {
+        await OneSignal.Notifications.requestPermission();
+
+        if (OneSignal.Notifications.permission) {
+          await OneSignal.User.PushSubscription.optIn();
+          alert('Meldingen staan aan ✅');
+        } else {
+          alert('Meldingen zijn nog niet toegestaan.');
+        }
+      } catch (error) {
+        alert('Fout bij meldingen: ' + error.message);
+        console.error(error);
+      }
     });
   });
-}
 refreshSession();
