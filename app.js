@@ -1420,4 +1420,4 @@ if (enableNotificationsBtn) {
       }
     });
   });
-refreshSession();
+}refreshSession();
