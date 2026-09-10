@@ -1398,5 +1398,15 @@ if (_event === 'PASSWORD_RECOVERY') {
 /* =========================
    START APP
 ========================= */
+const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
+if (enableNotificationsBtn) {
+  enableNotificationsBtn.addEventListener('click', () => {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+    OneSignalDeferred.push(async function (OneSignal) {
+      await OneSignal.Notifications.requestPermission();
+    });
+  });
+}
 refreshSession();
