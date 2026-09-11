@@ -465,7 +465,8 @@ const displayLessons =
     ? upcomingLessons.filter(
         l => l.lesson_date === firstLesson.lesson_date
       )
-    : upcomingLessons.slice(0, 1);
+    : upcomingLessons.slice(0, 2)
+                            ;
 
 box.innerHTML =
   '<div class="card">' +
