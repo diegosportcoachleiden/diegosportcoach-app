@@ -429,152 +429,149 @@ if (expiryEl) {
 ========================= */
 
 async function renderLessons() {
+  const box = $('#lessenContent');
 
- const box = $('#lessenContent');
-const upcomingLessons = lessons
-  .filter(l => {
-    const dateTime = new Date(
-      `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}`
-    );
-    return dateTime > new Date();
-  })
-  .sort((a, b) => {
-    const aTime = new Date(
-      `${a.lesson_date}T${String(a.lesson_time).slice(0, 5)}`
-    );
-    const bTime = new Date(
-      `${b.lesson_date}T${String(b.lesson_time).slice(0, 5)}`
-    );
-    return aTime - bTime;
-    alert(upcomingLessons.map(l => l.lesson_date + ' ' + l.lesson_time).join('\n'));
-  });
+  const now = new Date();
+
+  const upcomingLessons = lessons
+    .filter(l => {
+      const dateTime = new Date(
+        `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+      );
+
+      return dateTime > now;
+    })
+    .sort((a, b) => {
+      const aTime = new Date(
+        `${a.lesson_date}T${String(a.lesson_time).slice(0, 5)}:00`
+      );
+
+      const bTime = new Date(
+        `${b.lesson_date}T${String(b.lesson_time).slice(0, 5)}:00`
+      );
+
+      return aTime - bTime;
+    });
+
   if (!upcomingLessons.length) {
-
-    box.innerHTML =
-      '<div class="card">' +
-      '<p>Er staan nog geen trainingen gepland.</p>' +
-      '</div>';
-
+    box.innerHTML = `
+      <div class="card">
+        <p>Er staan nog geen trainingen gepland.</p>
+      </div>
+    `;
     return;
   }
 
-const firstLesson = upcomingLessons[0];
+  // Alleen de eerstvolgende trainingsdag tonen.
+  // Als er op die dag meerdere trainingen zijn, worden ze allemaal getoond.
+  const nextTrainingDate = upcomingLessons[0].lesson_date;
 
-const displayLessons =
-  firstLesson &&
-  new Date(`${firstLesson.lesson_date}T12:00:00`).getDay() === 3
-    ? upcomingLessons.filter(
-        l => l.lesson_date === firstLesson.lesson_date
-      )
-    : upcomingLessons.slice(0, 10)
-                            ;
+  const displayLessons = upcomingLessons.filter(
+    lesson => lesson.lesson_date === nextTrainingDate
+  );
 
-box.innerHTML =
-  '<div class="card">' +
-  '<h2>Eerstvolgende bootcamptraining</h2>' +
+  box.innerHTML = `
+    <div class="card">
+      <h2>Eerstvolgende bootcamptraining</h2>
 
-  displayLessons.map(l => {
+      ${displayLessons.map(l => {
+        const mine = myBookings.includes(l.id);
+        const waiting = myWaitlist.includes(l.id);
 
-      const mine =
-        myBookings.includes(l.id);
-const waiting =
-  myWaitlist.includes(l.id);
-      const count =
-        Number(l.booking_count || 0);
+        const count = Number(l.booking_count || 0);
+        const maxParticipants = Number(l.max_participants || 0);
+        const full = count >= maxParticipants;
 
-      const full =
-        count >=
-        Number(l.max_participants);
+        return `
+          <div class="lesson">
 
-      return `
-        <div class="lesson">
+            <div>
+              <h3>
+                ${esc(fmtDate(l.lesson_date))}
+                •
+                ${esc(String(l.lesson_time).slice(0, 5))}
+              </h3>
 
-          <div>
+              <div class="meta">
+                📍 ${esc(l.location)}
+                ·
+                ${count}/${maxParticipants} deelnemers
+              </div>
 
-            <h3>
-              ${esc(fmtDate(l.lesson_date))}
-              •
-              ${esc(
-                String(l.lesson_time)
-                  .slice(0, 5)
-              )}
-            </h3>
-
-            <div class="meta">
-              📍 ${esc(l.location)}
-              ·
-              ${count}/${l.max_participants}
-              deelnemers
+              <span class="badge ${
+                mine
+                  ? 'mine'
+                  : full
+                  ? 'full'
+                  : ''
+              }">
+                ${
+                  mine
+                    ? 'Ingeschreven'
+                    : waiting
+                    ? 'Op reservelijst'
+                    : full
+                    ? 'Vol'
+                    : 'Plek beschikbaar'
+                }
+              </span>
             </div>
 
-            <span class="badge ${
-              mine
-                ? 'mine'
-                : full
-                ? 'full'
-                : ''
-            }">
-
+            <button
+              class="${mine ? 'secondary' : 'primary'}"
+              data-book="${l.id}"
+              type="button"
+            >
               ${
-  mine
-    ? 'Ingeschreven'
-    : waiting
-    ? 'Op reservelijst'
-    : full
-    ? 'Vol'
-    : 'Plek beschikbaar'
-}
-
-            </span>
+                mine
+                  ? 'Uitschrijven'
+                  : waiting
+                  ? 'Van reservelijst'
+                  : full
+                  ? 'Reserveplek'
+                  : 'Inschrijven'
+              }
+            </button>
 
           </div>
+        `;
+      }).join('')}
 
-<button
-  class="${mine ? 'secondary' : 'primary'}"
-  data-book="${l.id}"
->
-${
-  mine
-    ? 'Uitschrijven'
-    : waiting
-    ? 'Van reservelijst'
-    : full
-    ? 'Reserveplek'
-    : 'Inschrijven'
-}
-</button>
+    </div>
+  `;
 
-        </div>
-      `;
+  $$('[data-book]').forEach(button => {
+    button.onclick = async () => {
+      const id = button.dataset.book;
 
-    }).join('') +
+      if (myBookings.includes(id)) {
+        await toggleBooking(id);
+        return;
+      }
 
-    '</div>';
+      if (myWaitlist.includes(id)) {
+        await toggleWaitlist(id);
+        return;
+      }
 
-
-$$('[data-book]').forEach(button => {
-  button.onclick = () => {
-    const id = button.dataset.book;
-
-    if (myBookings.includes(id)) {
-      toggleBooking(id);
-    } else if (myWaitlist.includes(id)) {
-      toggleWaitlist(id);
-    } else {
       const lesson = lessons.find(l => l.id === id);
 
+      if (!lesson) {
+        toast('Training niet gevonden');
+        return;
+      }
+
       const full =
-        Number(lesson?.booking_count || 0) >=
-        Number(lesson?.max_participants || 0);
+        Number(lesson.booking_count || 0) >=
+        Number(lesson.max_participants || 0);
 
       if (full) {
-        toggleWaitlist(id);
+        await toggleWaitlist(id);
       } else {
-        toggleBooking(id);
+        await toggleBooking(id);
       }
-    }
-  };
-});
+    };
+  });
 }
 
 
@@ -1405,7 +1402,6 @@ const enableNotificationsBtn = document.getElementById('enableNotificationsBtn')
 if (enableNotificationsBtn) {
   enableNotificationsBtn.addEventListener('click', async () => {
     try {
-      alert('Nieuwe pushcode wordt uitgevoerd');
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         alert('Pushmeldingen worden op dit apparaat niet ondersteund.');
         return;
@@ -1430,9 +1426,7 @@ if (enableNotificationsBtn) {
           [...rawData].map(char => char.charCodeAt(0))
         );
       };
-alert('Voor service worker');
       const registration = await navigator.serviceWorker.ready;
-alert('Service worker klaar');
       let subscription =
         await registration.pushManager.getSubscription();
 
@@ -1458,7 +1452,7 @@ alert('Service worker klaar');
 
       if (error) throw error;
 
-      alert('Meldingen staan aan ✅');
+      toast('Meldingen staan aan ✅');
 
     } catch (error) {
       console.error(error);
@@ -1476,7 +1470,6 @@ if ('serviceWorker' in navigator) {
     console.error('Service worker fout:', error);
   });
 }
-window.addEventListener('pageshow', async () => {
   const response = await fetch('./index.html?update=' + Date.now(), {
     cache: 'no-store'
   });
