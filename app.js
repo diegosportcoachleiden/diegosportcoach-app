@@ -465,7 +465,7 @@ const displayLessons =
     ? upcomingLessons.filter(
         l => l.lesson_date === firstLesson.lesson_date
       )
-    : upcomingLessons.slice(0, 2)
+    : upcomingLessons.slice(0, 10)
                             ;
 
 box.innerHTML =
