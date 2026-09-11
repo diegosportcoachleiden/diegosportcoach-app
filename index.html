@@ -260,7 +260,7 @@
     </details>
   </section>
 <button id="enableNotificationsBtn" type="button">
- 🔔 Meldingen TEST 2
+ 🔔 Meldingen aanzetten
 </button>
 </section>
 
@@ -547,22 +547,6 @@
   ></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=15"></script>
-<script>
-  window.addEventListener('load', async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register(
-          './sw.js?v=2',
-          { updateViaCache: 'none' }
-        );
-
-        await registration.update();
-      } catch (error) {
-        console.error('Service worker update fout:', error);
-      }
-    }
-  });
-</script>
+<script src="app.js?v=16"></script>
 </body>
 </html>
