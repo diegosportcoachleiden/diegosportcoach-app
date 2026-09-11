@@ -1397,87 +1397,158 @@ if (_event === 'PASSWORD_RECOVERY') {
 /* =========================
    START APP
 ========================= */
-const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+
+function urlBase64ToUint8Array(base64String) {
+  const padding =
+    '='.repeat((4 - (base64String.length % 4)) % 4);
+
+  const base64 =
+    (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map(char => char.charCodeAt(0))
+  );
+}
+
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    return null;
+  }
+
+  try {
+    const registration =
+      await navigator.serviceWorker.register('./sw.js', {
+        updateViaCache: 'none'
+      });
+
+    await registration.update();
+
+    return registration;
+  } catch (error) {
+    console.error(
+      'Service worker registreren mislukt:',
+      error
+    );
+
+    return null;
+  }
+}
+
+async function enableNotifications() {
+  if (!session?.user) {
+    toast('Log eerst in om meldingen aan te zetten');
+    return;
+  }
+
+  if (
+    !('Notification' in window) ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window)
+  ) {
+    toast(
+      'Pushmeldingen worden op dit apparaat niet ondersteund'
+    );
+    return;
+  }
+
+  try {
+    const permission =
+      await Notification.requestPermission();
+
+    if (permission !== 'granted') {
+      toast('Meldingen zijn niet toegestaan');
+      return;
+    }
+
+    let registration =
+      await navigator.serviceWorker.getRegistration();
+
+    if (!registration) {
+      registration =
+        await registerServiceWorker();
+    }
+
+    if (!registration) {
+      throw new Error(
+        'Service worker kon niet worden gestart'
+      );
+    }
+
+    await navigator.serviceWorker.ready;
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription =
+        await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey:
+            urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+    }
+
+    const subscriptionData =
+      subscription.toJSON();
+
+    if (
+      !subscription.endpoint ||
+      !subscriptionData.keys?.p256dh ||
+      !subscriptionData.keys?.auth
+    ) {
+      throw new Error(
+        'Push-abonnement is niet compleet'
+      );
+    }
+
+    const { error } =
+      await supabaseClient
+        .from('push_subscriptions')
+        .upsert(
+          {
+            user_id: session.user.id,
+            endpoint: subscription.endpoint,
+            p256dh: subscriptionData.keys.p256dh,
+            auth: subscriptionData.keys.auth
+          },
+          {
+            onConflict: 'endpoint'
+          }
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    toast('Meldingen staan aan ✅');
+
+  } catch (error) {
+    console.error(
+      'Meldingen aanzetten mislukt:',
+      error
+    );
+
+    toast(
+      'Meldingen aanzetten mislukt'
+    );
+  }
+}
+
+const enableNotificationsBtn =
+  $('#enableNotificationsBtn');
 
 if (enableNotificationsBtn) {
-  enableNotificationsBtn.addEventListener('click', async () => {
-    try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        alert('Pushmeldingen worden op dit apparaat niet ondersteund.');
-        return;
-      }
-
-      const permission = await Notification.requestPermission();
-
-      if (permission !== 'granted') {
-        alert('Meldingen zijn niet toegestaan.');
-        return;
-      }
-
-      const urlBase64ToUint8Array = base64String => {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-          .replace(/-/g, '+')
-          .replace(/_/g, '/');
-
-        const rawData = atob(base64);
-
-        return Uint8Array.from(
-          [...rawData].map(char => char.charCodeAt(0))
-        );
-      };
-      const registration = await navigator.serviceWorker.ready;
-      let subscription =
-        await registration.pushManager.getSubscription();
-
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
-      }
-
-      const subscriptionData = subscription.toJSON();
-
-      const { error } = await supabaseClient
-        .from('push_subscriptions')
-        .upsert({
-          user_id: session.user.id,
-          endpoint: subscription.endpoint,
-          p256dh: subscriptionData.keys.p256dh,
-          auth: subscriptionData.keys.auth
-        }, {
-          onConflict: 'endpoint'
-        });
-
-      if (error) throw error;
-
-      toast('Meldingen staan aan ✅');
-
-    } catch (error) {
-      console.error(error);
-      alert('Fout bij meldingen: ' + error.message);
-    }
-  });
-  }
-refreshSession();
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=2', {
-    updateViaCache: 'none'
-  }).then(registration => {
-    registration.update();
-  }).catch(error => {
-    console.error('Service worker fout:', error);
-  });
+  enableNotificationsBtn.onclick =
+    enableNotifications;
 }
-  const response = await fetch('./index.html?update=' + Date.now(), {
-    cache: 'no-store'
-  });
 
-  const newHtml = await response.text();
+async function startApp() {
+  await registerServiceWorker();
+  await refreshSession();
+}
 
-  if (newHtml.includes('Meldingen TEST 2') &&
-      !document.body.innerHTML.includes('Meldingen TEST 2')) {
-    window.location.reload();
-  }
-});
+startApp();
