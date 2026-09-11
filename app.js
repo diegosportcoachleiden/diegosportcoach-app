@@ -1465,3 +1465,12 @@ alert('Service worker klaar');
   });
   }
 refreshSession();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js?v=2', {
+    updateViaCache: 'none'
+  }).then(registration => {
+    registration.update();
+  }).catch(error => {
+    console.error('Service worker fout:', error);
+  });
+}
