@@ -1474,8 +1474,15 @@ if ('serviceWorker' in navigator) {
     console.error('Service worker fout:', error);
   });
 }
-window.addEventListener('pageshow', () => {
-  fetch('./index.html?update=' + Date.now(), {
+window.addEventListener('pageshow', async () => {
+  const response = await fetch('./index.html?update=' + Date.now(), {
     cache: 'no-store'
   });
+
+  const newHtml = await response.text();
+
+  if (newHtml.includes('Meldingen TEST 2') &&
+      !document.body.innerHTML.includes('Meldingen TEST 2')) {
+    window.location.reload();
+  }
 });
