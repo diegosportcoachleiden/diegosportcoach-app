@@ -1428,9 +1428,9 @@ if (enableNotificationsBtn) {
           [...rawData].map(char => char.charCodeAt(0))
         );
       };
-
+alert('Voor service worker');
       const registration = await navigator.serviceWorker.ready;
-
+alert('Service worker klaar');
       let subscription =
         await registration.pushManager.getSubscription();
 
