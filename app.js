@@ -1474,3 +1474,8 @@ if ('serviceWorker' in navigator) {
     console.error('Service worker fout:', error);
   });
 }
+window.addEventListener('pageshow', () => {
+  fetch('./index.html?update=' + Date.now(), {
+    cache: 'no-store'
+  });
+});
