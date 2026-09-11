@@ -446,6 +446,7 @@ const upcomingLessons = lessons
       `${b.lesson_date}T${String(b.lesson_time).slice(0, 5)}`
     );
     return aTime - bTime;
+    alert(upcomingLessons.map(l => l.lesson_date + ' ' + l.lesson_time).join('\n'));
   });
   if (!upcomingLessons.length) {
 
