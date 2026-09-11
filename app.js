@@ -1403,6 +1403,7 @@ const enableNotificationsBtn = document.getElementById('enableNotificationsBtn')
 if (enableNotificationsBtn) {
   enableNotificationsBtn.addEventListener('click', async () => {
     try {
+      alert('Nieuwe pushcode wordt uitgevoerd');
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         alert('Pushmeldingen worden op dit apparaat niet ondersteund.');
         return;
