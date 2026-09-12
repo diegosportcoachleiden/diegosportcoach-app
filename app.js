@@ -1,6 +1,6 @@
 const SUPABASE_URL = 'https://zjvqbfmxaibjcdpttgmj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZIVgG4DUG8zo6C1hoPkJA_x4YbnKkA';
-const VAPID_PUBLIC_KEY = 'BKP8EsZ015x4JfyYYBwq2iJKbcjcEl0JaqrQ93w-9ddBTI_3UaZCWO6kSEulSnEnleB7T9HBKkNAIJ_tzo2DANo';
+const VAPID_PUBLIC_KEY = "BD06OtRvwWO65JQJef120ea-iu188UTLYolpx0N_tWEFLKUOVExyKrV6tE95ULxI298MmzQaIm2AvnzBCsvuxvU";
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
@@ -1481,16 +1481,18 @@ async function enableNotifications() {
     await navigator.serviceWorker.ready;
 
     let subscription =
-      await registration.pushManager.getSubscription();
+  await registration.pushManager.getSubscription();
 
-    if (!subscription) {
-      subscription =
-        await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey:
-            urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
-    }
+if (subscription) {
+  await subscription.unsubscribe();
+}
+
+subscription =
+  await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey:
+      urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+  });
 
     const subscriptionData =
       subscription.toJSON();
