@@ -245,10 +245,12 @@ async function signUp() {
       email,
       password,
       options: {
-        data: {
-          name
-        }
-      }
+  data: {
+    name
+  },
+  emailRedirectTo:
+    'https://diegosportcoachleiden.github.io/diegosportcoach-app/'
+}
     });
 
   if (error) {
