@@ -607,15 +607,40 @@ async function toggleBooking(id) {
 }
 const lessonStart = new Date(
   `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
-);
+const now = new Date();
 
-const signupDeadline = new Date(
-  lessonStart.getTime() - 30 * 60 * 1000
-);
+const sameDayStart = new Date(lessonStart);
+sameDayStart.setHours(15, 0, 0, 0);
 
-if (!mine && new Date() > signupDeadline) {
-  toast('Inschrijven gesloten');
-  return;
+const sameDayEnd = new Date(lessonStart);
+sameDayEnd.setHours(16, 0, 0, 0);
+
+const day = lessonStart.getDay();
+const isWeekend = day === 0 || day === 6;
+
+let cancellationCostsCredit = false;
+
+if (isWeekend) {
+  cancellationCostsCredit = now >= dayBefore;
+} else {
+  cancellationCostsCredit =
+    !(
+      now.toDateString() === lessonStart.toDateString() &&
+      now >= sameDayStart &&
+      now <= sameDayEnd
+    );
+}
+
+if (mine && cancellationCostsCredit) {
+  const confirmed = confirm(
+    'Let op: de kosteloze afmeldtijd is voorbij. ' +
+    'Als je nu uitschrijft, ben je deze training en het gebruikte trainingstegoed kwijt. ' +
+    'Weet je zeker dat je wilt uitschrijven?'
+  );
+
+  if (!confirmed) {
+    return;
+  }
 }
   const count =
     Number(lesson.booking_count || 0);
