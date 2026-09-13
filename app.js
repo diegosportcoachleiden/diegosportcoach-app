@@ -1023,13 +1023,41 @@ $('#adminCustomers').innerHTML =
   >
     +1
   </button>
+
   <button
-  class="danger"
-  data-delete-customer="${m.id}"
-  type="button"
->
-  Verwijderen
-</button>
+    class="primary"
+    data-credit-add="${m.id}"
+    data-amount="1"
+    type="button"
+  >
+    1 losse les
+  </button>
+
+  <button
+    class="primary"
+    data-credit-add="${m.id}"
+    data-amount="5"
+    type="button"
+  >
+    5 lessen
+  </button>
+
+  <button
+    class="primary"
+    data-credit-add="${m.id}"
+    data-amount="12"
+    type="button"
+  >
+    12 lessen
+  </button>
+
+  <button
+    class="danger"
+    data-delete-customer="${m.id}"
+    type="button"
+  >
+    Verwijderen
+  </button>
 </td>
 </tr>
             `).join('')}
@@ -1336,11 +1364,20 @@ $('#addLesson').onclick =
 $('#adminCustomers').onclick = async (e) => {
   const minusBtn = e.target.closest('[data-credit-minus]');
   const plusBtn = e.target.closest('[data-credit-plus]');
-
+  const addBtn = e.target.closest('[data-credit-add]');
+  
   if (minusBtn) {
     await changeCredit(minusBtn.dataset.creditMinus, -1);
   }
+if (addBtn) {
+  const amount = Number(addBtn.dataset.amount || 0);
 
+  if (amount > 0) {
+    await changeCredit(addBtn.dataset.creditAdd, amount);
+  }
+
+  return;
+}
   if (plusBtn) {
     await changeCredit(plusBtn.dataset.creditPlus, 1);
   }
