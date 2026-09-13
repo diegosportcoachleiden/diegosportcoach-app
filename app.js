@@ -607,7 +607,13 @@ async function toggleBooking(id) {
 }
 const lessonStart = new Date(
   `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
+);
+
 const now = new Date();
+
+const dayBefore = new Date(lessonStart);
+dayBefore.setDate(dayBefore.getDate() - 1);
+dayBefore.setHours(21, 0, 0, 0);
 
 const sameDayStart = new Date(lessonStart);
 sameDayStart.setHours(15, 0, 0, 0);
