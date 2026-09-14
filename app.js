@@ -464,17 +464,31 @@ async function renderLessons() {
     return;
   }
 
-  // Alleen de eerstvolgende trainingsdag tonen.
-  // Als er op die dag meerdere trainingen zijn, worden ze allemaal getoond.
-  const nextTrainingDate = upcomingLessons[0].lesson_date;
+  // Toon alle komende trainingen van dezelfde trainingsweek.
+const firstLessonDate = new Date(
+  `${upcomingLessons[0].lesson_date}T12:00:00`
+);
 
-  const displayLessons = upcomingLessons.filter(
-    lesson => lesson.lesson_date === nextTrainingDate
+const endOfWeek = new Date(firstLessonDate);
+const dayOfWeek = endOfWeek.getDay();
+
+endOfWeek.setDate(
+  endOfWeek.getDate() + (dayOfWeek === 0 ? 0 : 7 - dayOfWeek)
+);
+
+endOfWeek.setHours(23, 59, 59, 999);
+
+const displayLessons = upcomingLessons.filter(lesson => {
+  const lessonDate = new Date(
+    `${lesson.lesson_date}T12:00:00`
   );
+
+  return lessonDate <= endOfWeek;
+});
 
   box.innerHTML = `
     <div class="card">
-      <h2>Eerstvolgende bootcamptraining</h2>
+ <h2>Bootcamptrainingen deze week</h2>    
 
       ${displayLessons.map(l => {
         const mine = myBookings.includes(l.id);
