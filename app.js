@@ -913,7 +913,100 @@ async function addLesson() {
   await loadData();
   await renderAdmin();
 }
+async function addWeekLessons() {
+  const location = $('#weekLocation').value.trim();
+  const max_participants = Number($('#weekMax').value);
 
+  const checkedDays = [
+    ...document.querySelectorAll('.weekEnabled:checked')
+  ];
+
+  if (!checkedDays.length || !location || !max_participants) {
+    toast('Vul locatie in en kies minimaal één trainingsdag');
+    return;
+  }
+
+  // Bepaal maandag van de huidige week
+  const today = new Date();
+  const day = today.getDay();
+
+  const monday = new Date(today);
+  monday.setHours(12, 0, 0, 0);
+  monday.setDate(today.getDate() - ((day + 6) % 7));
+
+  const newLessons = [];
+
+  for (const checkbox of checkedDays) {
+    const targetDay = Number(checkbox.dataset.day);
+
+    const timeInput = document.querySelector(
+      `.weekTime[data-day="${targetDay}"]`
+    );
+
+    const lesson_time = timeInput?.value;
+
+    if (!lesson_time) continue;
+
+    // zondag = 0, maandag = 1 enz.
+    const offset = targetDay === 0 ? 6 : targetDay - 1;
+
+    const lessonDate = new Date(monday);
+    lessonDate.setDate(monday.getDate() + offset);
+
+    // Als deze trainingsdag al voorbij is,
+    // wordt dezelfde dag van volgende week gebruikt.
+    const now = new Date();
+    const lessonDateTime = new Date(lessonDate);
+    const [hours, minutes] = lesson_time.split(':');
+
+    lessonDateTime.setHours(
+      Number(hours),
+      Number(minutes),
+      0,
+      0
+    );
+
+    if (lessonDateTime <= now) {
+      lessonDate.setDate(lessonDate.getDate() + 7);
+    }
+
+    const lesson_date =
+      `${lessonDate.getFullYear()}-` +
+      `${String(lessonDate.getMonth() + 1).padStart(2, '0')}-` +
+      `${String(lessonDate.getDate()).padStart(2, '0')}`;
+
+    newLessons.push({
+      lesson_date,
+      lesson_time,
+      location,
+      max_participants
+    });
+  }
+
+  if (!newLessons.length) {
+    toast('Geen geldige trainingen geselecteerd');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('lessons')
+    .insert(newLessons);
+
+  if (error) {
+    console.error(error);
+    toast(error.message);
+    return;
+  }
+
+  toast(`${newLessons.length} trainingen toegevoegd`);
+
+  document
+    .querySelectorAll('.weekEnabled')
+    .forEach(el => el.checked = false);
+
+  await loadData();
+  await renderAdmin();
+}
 
 /* =========================
    BEHEER TONEN
@@ -1361,6 +1454,8 @@ $('#saveAnnouncementBtn').onclick = saveAnnouncement;
 $('#deleteAnnouncementBtn').onclick = deleteAnnouncement;
 $('#addLesson').onclick =
   addLesson;
+$('#addWeekLessons').onclick =
+  addWeekLessons;
 $('#adminCustomers').onclick = async (e) => {
   const minusBtn = e.target.closest('[data-credit-minus]');
   const plusBtn = e.target.closest('[data-credit-plus]');
