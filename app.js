@@ -914,15 +914,14 @@ async function addLesson() {
   await renderAdmin();
 }
 async function addWeekLessons() {
-  const location = $('#weekLocation').value.trim();
   const max_participants = Number($('#weekMax').value);
 
   const checkedDays = [
     ...document.querySelectorAll('.weekEnabled:checked')
   ];
 
-  if (!checkedDays.length || !location || !max_participants) {
-    toast('Vul locatie in en kies minimaal één trainingsdag');
+  if (!checkedDays.length || !max_participants) {
+    toast('Kies minimaal één trainingsdag');
     return;
   }
 
@@ -932,32 +931,50 @@ async function addWeekLessons() {
 
   const monday = new Date(today);
   monday.setHours(12, 0, 0, 0);
-  monday.setDate(today.getDate() - ((day + 6) % 7));
+  monday.setDate(
+    today.getDate() - ((day + 6) % 7)
+  );
 
   const newLessons = [];
 
   for (const checkbox of checkedDays) {
     const targetDay = Number(checkbox.dataset.day);
+    const slot = checkbox.dataset.slot || '1';
 
     const timeInput = document.querySelector(
-      `.weekTime[data-day="${targetDay}"]`
+      `.weekTime[data-day="${targetDay}"][data-slot="${slot}"]`
     );
 
     const lesson_time = timeInput?.value;
 
     if (!lesson_time) continue;
 
+    const location =
+      checkbox.dataset.location ||
+      $('#weekLocation')?.value.trim() ||
+      'Station De Vink';
+
     // zondag = 0, maandag = 1 enz.
-    const offset = targetDay === 0 ? 6 : targetDay - 1;
+    const offset =
+      targetDay === 0
+        ? 6
+        : targetDay - 1;
 
     const lessonDate = new Date(monday);
-    lessonDate.setDate(monday.getDate() + offset);
 
-    // Als deze trainingsdag al voorbij is,
-    // wordt dezelfde dag van volgende week gebruikt.
+    lessonDate.setDate(
+      monday.getDate() + offset
+    );
+
+    // Als deze training deze week al voorbij is,
+    // wordt dezelfde training volgende week toegevoegd.
     const now = new Date();
-    const lessonDateTime = new Date(lessonDate);
-    const [hours, minutes] = lesson_time.split(':');
+
+    const lessonDateTime =
+      new Date(lessonDate);
+
+    const [hours, minutes] =
+      lesson_time.split(':');
 
     lessonDateTime.setHours(
       Number(hours),
@@ -967,7 +984,9 @@ async function addWeekLessons() {
     );
 
     if (lessonDateTime <= now) {
-      lessonDate.setDate(lessonDate.getDate() + 7);
+      lessonDate.setDate(
+        lessonDate.getDate() + 7
+      );
     }
 
     const lesson_date =
@@ -988,9 +1007,10 @@ async function addWeekLessons() {
     return;
   }
 
-  const { error } = await supabaseClient
-    .from('lessons')
-    .insert(newLessons);
+  const { error } =
+    await supabaseClient
+      .from('lessons')
+      .insert(newLessons);
 
   if (error) {
     console.error(error);
@@ -998,7 +1018,9 @@ async function addWeekLessons() {
     return;
   }
 
-  toast(`${newLessons.length} trainingen toegevoegd`);
+  toast(
+    `${newLessons.length} trainingen toegevoegd`
+  );
 
   document
     .querySelectorAll('.weekEnabled')
@@ -1007,7 +1029,6 @@ async function addWeekLessons() {
   await loadData();
   await renderAdmin();
 }
-
 /* =========================
    BEHEER TONEN
 ========================= */
