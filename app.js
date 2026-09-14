@@ -630,10 +630,7 @@ dayBefore.setDate(dayBefore.getDate() - 1);
 dayBefore.setHours(21, 0, 0, 0);
 
 const sameDayStart = new Date(lessonStart);
-sameDayStart.setHours(15, 0, 0, 0);
-
-const sameDayEnd = new Date(lessonStart);
-sameDayEnd.setHours(16, 0, 0, 0);
+sameDayStart.setHours(16, 0, 0, 0);
 
 const day = lessonStart.getDay();
 const isWeekend = day === 0 || day === 6;
@@ -643,12 +640,9 @@ let cancellationCostsCredit = false;
 if (isWeekend) {
   cancellationCostsCredit = now >= dayBefore;
 } else {
-  cancellationCostsCredit =
-    !(
-      now.toDateString() === lessonStart.toDateString() &&
-      now >= sameDayStart &&
-      now <= sameDayEnd
-    );
+cancellationCostsCredit =
+  now.toDateString() === lessonStart.toDateString() &&
+  now > sameDayStart;  
 }
 
 if (mine && cancellationCostsCredit) {
