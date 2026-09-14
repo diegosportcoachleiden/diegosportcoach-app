@@ -1008,6 +1008,19 @@ async function addWeekLessons() {
       `${String(lessonDate.getMonth() + 1).padStart(2, '0')}-` +
       `${String(lessonDate.getDate()).padStart(2, '0')}`;
 
+    const alreadyExists =
+  lessons.some(l =>
+    l.lesson_date === lesson_date &&
+    String(l.lesson_time).slice(0, 5) === String(lesson_time).slice(0, 5)
+  ) ||
+  newLessons.some(l =>
+    l.lesson_date === lesson_date &&
+    String(l.lesson_time).slice(0, 5) === String(lesson_time).slice(0, 5)
+  );
+
+if (alreadyExists) {
+  continue;
+}
     newLessons.push({
       lesson_date,
       lesson_time,
