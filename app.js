@@ -502,6 +502,10 @@ const displayLessons = upcomingLessons.filter(lesson => {
         const maxParticipants = Number(l.max_participants || 0);
         const full = count >= maxParticipants;
 
+        const lessonStarted = new Date(
+  `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+) <= now;
+        
         return `
           <div class="lesson">
 
@@ -536,9 +540,7 @@ const displayLessons = upcomingLessons.filter(lesson => {
                 }
               </span>
             </div>
-const lessonStarted = new Date(
-  `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
-) <= now;
+
 
  <button
   class="${lessonStarted ? 'secondary' : (mine ? 'secondary' : 'primary')}"
