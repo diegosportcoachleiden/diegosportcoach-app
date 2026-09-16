@@ -441,7 +441,11 @@ async function renderLessons() {
         `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
       );
 
-      return dateTime > now;
+    return dateTime >= new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate() - ((now.getDay() + 6) % 7)
+);
     })
     .sort((a, b) => {
       const aTime = new Date(
@@ -532,22 +536,28 @@ const displayLessons = upcomingLessons.filter(lesson => {
                 }
               </span>
             </div>
+const lessonStarted = new Date(
+  `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+) <= now;
 
-            <button
-              class="${mine ? 'secondary' : 'primary'}"
-              data-book="${l.id}"
-              type="button"
-            >
-              ${
-                mine
-                  ? 'Uitschrijven'
-                  : waiting
-                  ? 'Van reservelijst'
-                  : full
-                  ? 'Reserveplek'
-                  : 'Inschrijven'
-              }
-            </button>
+ <button
+  class="${lessonStarted ? 'secondary' : (mine ? 'secondary' : 'primary')}"
+  data-book="${l.id}"
+  type="button"
+  ${lessonStarted ? 'disabled' : ''}
+>
+  ${
+    lessonStarted
+      ? 'Gesloten'
+      : mine
+      ? 'Uitschrijven'
+      : waiting
+      ? 'Van reservelijst'
+      : full
+      ? 'Reserveplek'
+      : 'Inschrijven'
+  }
+</button>           
 
           </div>
         `;
