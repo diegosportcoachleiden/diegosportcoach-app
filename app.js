@@ -660,12 +660,6 @@ if (isWeekend || isFridayMorning) {
     now.toDateString() === lessonStart.toDateString() &&
     now > sameDayStart;
 }
-  
-} else {
-  cancellationCostsCredit =
-    now.toDateString() === lessonStart.toDateString() &&
-    now > sameDayStart;
-}
 
 if (mine && cancellationCostsCredit) {
   const confirmed = confirm(
