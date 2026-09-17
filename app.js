@@ -646,15 +646,18 @@ sameDayStart.setHours(16, 0, 0, 0);
 
 const day = lessonStart.getDay();
 const isWeekend = day === 0 || day === 6;
+const isFridayMorning =
+  day === 5 &&
+  lessonStart.getHours() === 9;
 
 let cancellationCostsCredit = false;
 
-if (isWeekend) {
-  cancellationCostsCredit = now >= dayBefore;
+if (isWeekend || isFridayMorning) {
+  cancellationCostsCredit = now > dayBefore;
 } else {
-cancellationCostsCredit =
-  now.toDateString() === lessonStart.toDateString() &&
-  now > sameDayStart;  
+  cancellationCostsCredit =
+    now.toDateString() === lessonStart.toDateString() &&
+    now > sameDayStart;
 }
 
 if (mine && cancellationCostsCredit) {
