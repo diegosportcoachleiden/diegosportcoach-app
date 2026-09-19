@@ -1798,7 +1798,25 @@ if (enableNotificationsBtn) {
 }
 
 async function startApp() {
-  await registerServiceWorker();
+  const registration = await registerServiceWorker();
+
+  if (registration) {
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+
+      if (newWorker) {
+        newWorker.addEventListener('statechange', () => {
+          if (
+            newWorker.state === 'activated' &&
+            navigator.serviceWorker.controller
+          ) {
+            window.location.reload();
+          }
+        });
+      }
+    });
+  }
+
   await refreshSession();
 }
 
