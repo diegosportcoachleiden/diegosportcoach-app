@@ -171,6 +171,30 @@ function showLogin() {
   
 }
 
+function showHomeScreenTip() {
+  const tipAlreadySeen = localStorage.getItem('homeScreenTipSeen');
+
+  if (tipAlreadySeen) return;
+
+  setTimeout(() => {
+    const message =
+`📱 Zet DiegoSportCoach op je beginscherm
+
+Zo heb je de app altijd snel bij de hand.
+
+iPhone:
+Safari → Delen → Zet op beginscherm → Voeg toe.
+
+Android:
+Chrome → ⋮ → Toevoegen aan startscherm / App installeren.
+
+Lukt het niet? Vraag Diego voor of na de training even om hulp. 👍`;
+
+    alert(message);
+
+    localStorage.setItem('homeScreenTipSeen', 'yes');
+  }, 500);
+}
 
 function showApp() {
 
@@ -178,6 +202,8 @@ function showApp() {
   $('#appView').classList.remove('hidden');
   $('#adminView').classList.add('hidden');
   $('#logoutBtn').classList.remove('hidden');
+
+  showHomeScreenTip();
 
   const adminButton = $('#adminTabBtn');
 
