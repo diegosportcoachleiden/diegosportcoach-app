@@ -127,3 +127,9 @@ textarea {
   cursor: pointer;
   z-index: 2;
 }
+
+#signUpBtn.signup-ready {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
