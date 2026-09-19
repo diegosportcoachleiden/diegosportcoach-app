@@ -40,29 +40,29 @@
 
     <section id="loginView" class="card auth">
 
-      <h1>Welkom 👋</h1>
+     <h1>Welkom bij DiegoSportCoach 👋</h1>
 
-      <p>
-        Log in of maak een account aan om je voor bootcamplessen in te schrijven.
-      </p>
+<p>
+  Heb je al een account? Vul hieronder je e-mailadres en wachtwoord in en klik op <strong>Inloggen</strong>.
+</p>
 
-      <label>Naam</label>
+<label>Naam</label>
 
-      <input
-        id="nameInput"
-        type="text"
-        placeholder="Voor- en achternaam"
-      >
+<input
+  id="nameInput"
+  type="text"
+  placeholder="Alleen nodig bij een nieuw account"
+>
 
-      <label>E-mailadres</label>
+<label>E-mailadres</label>
 
-      <input
-        id="emailInput"
-        type="email"
-        placeholder="naam@email.nl"
-      >
+<input
+  id="emailInput"
+  type="email"
+  placeholder="naam@email.nl"
+>
 
-     <label>Wachtwoord</label>
+<label>Wachtwoord</label>
 
 <div class="password-wrap">
   <input
@@ -74,16 +74,18 @@
     type="button"
     id="togglePassword"
     class="password-eye"
+    aria-label="Wachtwoord verborgen"
   >🙈</button>
 </div>
 
-      <button
-        id="loginBtn"
-        class="primary"
-        type="button"
-      >
-        Inloggen
-      </button>
+<button
+  id="loginBtn"
+  class="primary"
+  type="button"
+>
+  Inloggen
+</button>
+
 <button
   id="forgotPasswordBtn"
   class="secondary"
@@ -91,53 +93,61 @@
 >
   Wachtwoord vergeten?
 </button>
-      <button
-        id="signUpBtn"
-        class="secondary"
-        type="button"
-      >
-        Account aanmaken
-      </button>
 
-      <button
+<hr style="margin:24px 0;">
+
+<h2>Nieuw bij DiegoSportCoach?</h2>
+
+<p>
+  Maak hieronder eenvoudig je account aan. Lees je dit voor de eerste keer? Bekijk dan eerst de korte uitleg.
+</p>
+
+<button
   id="accountHelpBtn"
   class="secondary"
   type="button"
 >
-  📖 Eerste keer? Zo maak je een account aan
+  📖 Bekijk uitleg account aanmaken
 </button>
 
 <div id="accountHelp" class="hidden" style="margin-top:12px;">
+
   <strong>Account aanmaken – stap voor stap</strong>
 
- <p>
-  1. Vul je voornaam, achternaam, e-mailadres en een wachtwoord in.
-  <strong>(Voornaam en achternaam zijn alleen noodzakelijk bij de eerste keer.)</strong>
-</p>
-
   <p>
-    2. Klik op <strong>Account aanmaken</strong>.
+    <strong>1.</strong> Vul hierboven je naam, e-mailadres en een wachtwoord van minimaal 6 tekens in.
   </p>
 
   <p>
-    3. Je ontvangt daarna een bevestigingsmail.
-    Kijk ook even in je <strong>ongewenste mail/spam</strong>,
-    want de bevestigingsmail kan daar terechtkomen.
+    <strong>2.</strong> Klik daarna op <strong>Account aanmaken</strong>.
   </p>
 
   <p>
-    4. Open de e-mail en klik op de bevestigingslink.
+    <strong>3.</strong> Je ontvangt een bevestigingsmail. Kijk ook bij je
+    <strong>ongewenste mail/spam</strong> als je de e-mail niet ziet.
   </p>
 
   <p>
-    5. Ga daarna terug naar de DiegoSportCoach-app
-    en log in met je e-mailadres en wachtwoord.
+    <strong>4.</strong> Open de bevestigingsmail en klik op de link om je account te bevestigen.
   </p>
 
   <p>
-    ✅ Je account is klaar voor gebruik!
+    <strong>5.</strong> Ga daarna terug naar de DiegoSportCoach-app en log in met je e-mailadres en wachtwoord.
   </p>
+
+  <p>
+    ✅ <strong>Klaar! Je kunt de app nu gebruiken.</strong>
+  </p>
+
 </div>
+
+<button
+  id="signUpBtn"
+  class="secondary"
+  type="button"
+>
+  Account aanmaken
+</button> 
       
       <p
         id="authMsg"
