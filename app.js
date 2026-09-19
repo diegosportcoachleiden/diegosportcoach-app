@@ -1670,9 +1670,9 @@ async function registerServiceWorker() {
 
   try {
     const registration =
-      await navigator.serviceWorker.register('./sw.js', {
-        updateViaCache: 'none'
-      });
+  await navigator.serviceWorker.register('./sw.js?v=2', {
+    updateViaCache: 'none'
+  });
 
     await registration.update();
 
