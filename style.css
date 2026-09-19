@@ -99,9 +99,20 @@ textarea {
   box-sizing: border-box;
 }
 
-.password-eye {
+.password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrap input {
+  width: 100%;
+  padding-right: 60px;
+  box-sizing: border-box;
+}
+
+.password-wrap .password-eye {
   position: absolute;
-  right: 12px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
   width: 42px;
@@ -111,5 +122,8 @@ textarea {
   border: none;
   background: transparent;
   font-size: 22px;
+  line-height: 42px;
+  text-align: center;
   cursor: pointer;
+  z-index: 2;
 }
