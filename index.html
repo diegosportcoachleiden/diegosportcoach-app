@@ -91,6 +91,45 @@
         Account aanmaken
       </button>
 
+      <button
+  id="accountHelpBtn"
+  class="secondary"
+  type="button"
+>
+  📖 Eerste keer? Zo maak je een account aan
+</button>
+
+<div id="accountHelp" class="hidden" style="margin-top:12px;">
+  <strong>Account aanmaken – stap voor stap</strong>
+
+  <p>
+    1. Vul je e-mailadres en een wachtwoord in.
+  </p>
+
+  <p>
+    2. Klik op <strong>Account aanmaken</strong>.
+  </p>
+
+  <p>
+    3. Je ontvangt daarna een bevestigingsmail.
+    Kijk ook even in je <strong>ongewenste mail/spam</strong>,
+    want de bevestigingsmail kan daar terechtkomen.
+  </p>
+
+  <p>
+    4. Open de e-mail en klik op de bevestigingslink.
+  </p>
+
+  <p>
+    5. Ga daarna terug naar de DiegoSportCoach-app
+    en log in met je e-mailadres en wachtwoord.
+  </p>
+
+  <p>
+    ✅ Je account is klaar voor gebruik!
+  </p>
+</div>
+      
       <p
         id="authMsg"
         class="success hidden"
@@ -724,5 +763,23 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js?v=99"></script>
+
+<script>
+  const accountHelpBtn = document.getElementById("accountHelpBtn");
+  const accountHelp = document.getElementById("accountHelp");
+
+  if (accountHelpBtn && accountHelp) {
+    accountHelpBtn.addEventListener("click", () => {
+      accountHelp.classList.toggle("hidden");
+
+      if (accountHelp.classList.contains("hidden")) {
+        accountHelpBtn.textContent = "📖 Eerste keer? Zo maak je een account aan";
+      } else {
+        accountHelpBtn.textContent = "✖ Uitleg sluiten";
+      }
+    });
+  }
+  
+</script>  
 </body>
 </html>
