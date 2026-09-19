@@ -835,8 +835,33 @@
       }
     });
   }
+
+  const nameInput = document.getElementById("nameInput");
+const emailInput = document.getElementById("emailInput");
+const signUpBtn = document.getElementById("signUpBtn");
+
+function checkAccountForm() {
+  const fullName = nameInput.value.trim();
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  const hasFirstAndLastName = fullName.split(/\s+/).length >= 2;
+  const validEmail = email.includes("@") && email.includes(".");
+  const validPassword = password.length >= 6;
+
+  if (hasFirstAndLastName && validEmail && validPassword) {
+    signUpBtn.classList.add("signup-ready");
+  } else {
+    signUpBtn.classList.remove("signup-ready");
+  }
+}
+
+nameInput.addEventListener("input", checkAccountForm);
+emailInput.addEventListener("input", checkAccountForm);
+passwordInput.addEventListener("input", checkAccountForm);
+
+checkAccountForm();
 </script>
-  
-</script>  
+   
 </body>
 </html>
