@@ -1,4 +1,5 @@
 const APP_URL = '/diegosportcoach-app/';
+const SW_VERSION = '2026-09-19-1';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
