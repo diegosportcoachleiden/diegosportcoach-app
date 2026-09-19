@@ -1798,25 +1798,13 @@ if (enableNotificationsBtn) {
 }
 
 async function startApp() {
-  const registration = await registerServiceWorker();
-
-  if (registration) {
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-
-      if (newWorker) {
-        newWorker.addEventListener('statechange', () => {
-          if (
-            newWorker.state === 'activated' &&
-            navigator.serviceWorker.controller
-          ) {
-            window.location.reload();
-          }
-        });
-      }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
     });
   }
 
+  await registerServiceWorker();
   await refreshSession();
 }
 
