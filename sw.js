@@ -29,23 +29,17 @@ self.addEventListener('push', event => {
     console.error('Pushbericht kon niet worden gelezen:', error);
   }
 
-  const title =
-    data.title || 'DiegoSportCoach';
+  const title = data.title || 'DiegoSportCoach';
 
   const options = {
-    body:
-      data.body || 'Er is een nieuwe melding.',
+    body: data.body || 'Er is een nieuwe melding.',
     data: {
-      url:
-        data.url || APP_URL
+      url: data.url || APP_URL
     }
   };
 
   event.waitUntil(
-    self.registration.showNotification(
-      title,
-      options
-    )
+    self.registration.showNotification(title, options)
   );
 });
 
@@ -57,11 +51,10 @@ self.addEventListener('notificationclick', event => {
 
   event.waitUntil(
     (async () => {
-      const clientList =
-        await clients.matchAll({
-          type: 'window',
-          includeUncontrolled: true
-        });
+      const clientList = await clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true
+      });
 
       for (const client of clientList) {
         if (
@@ -90,9 +83,21 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // HTML altijd rechtstreeks van internet ophalen.
+  // Zo krijgt de app bij openen de nieuwste versie.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request, {
+        cache: 'no-store'
+      })
+    );
+    return;
+  }
+
+  // Ook andere bestanden niet uit een oude service-worker-cache halen.
   event.respondWith(
     fetch(event.request, {
       cache: 'no-store'
-    }).catch(() => caches.match(event.request))
+    })
   );
 });
