@@ -1677,12 +1677,28 @@ async function registerServiceWorker() {
   }
 
   try {
-    const registration =
-  await navigator.serviceWorker.register('./sw.js?v=2', {
-    updateViaCache: 'none'
-  });
+    const registration = await navigator.serviceWorker.register('./sw.js', {
+      updateViaCache: 'none'
+    });
 
+    // Bij iedere start direct controleren op een nieuwe versie
     await registration.update();
+
+    // Nieuwe service worker gevonden
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+
+      if (!newWorker) return;
+
+      newWorker.addEventListener('statechange', () => {
+        if (
+          newWorker.state === 'activated' &&
+          navigator.serviceWorker.controller
+        ) {
+          window.location.reload();
+        }
+      });
+    });
 
     return registration;
   } catch (error) {
