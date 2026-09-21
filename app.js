@@ -526,7 +526,7 @@ const displayLessons = upcomingLessons.filter(lesson => {
 
   box.innerHTML = `
     <div class="card">
- <h2>Bootcamptrainingen deze week</h2>    
+<h2>Bootcamptrainingen deze week ⚡</h2>    
 
       ${displayLessons.map(l => {
         const mine = myBookings.includes(l.id);
