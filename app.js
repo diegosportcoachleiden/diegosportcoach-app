@@ -1681,25 +1681,25 @@ async function registerServiceWorker() {
       updateViaCache: 'none'
     });
 
-    // Bij iedere start direct controleren op een nieuwe versie
-    await registration.update();
+    // Nieuwe service worker meteen opvangen
+registration.addEventListener('updatefound', () => {
+  const newWorker = registration.installing;
 
-    // Nieuwe service worker gevonden
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
+  if (!newWorker) return;
 
-      if (!newWorker) return;
+  newWorker.addEventListener('statechange', () => {
+    if (
+      newWorker.state === 'activated' &&
+      navigator.serviceWorker.controller
+    ) {
+      window.location.reload();
+    }
+  });
+});
 
-      newWorker.addEventListener('statechange', () => {
-        if (
-          newWorker.state === 'activated' &&
-          navigator.serviceWorker.controller
-        ) {
-          window.location.reload();
-        }
-      });
-    });
-
+// Daarna pas controleren op een nieuwe versie
+await registration.update();
+    
     return registration;
   } catch (error) {
     console.error(
