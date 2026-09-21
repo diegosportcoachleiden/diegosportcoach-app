@@ -86,78 +86,86 @@ async function loadProfile() {
 ========================= */
 
 async function loadData() {
+  const today = new Date().toISOString().slice(0, 10);
 
-  const {
-    data: lessonData,
-    error: lessonError
-  } = await supabaseClient.rpc(
-    'get_lessons_with_counts'
-  );
+  // Alles tegelijk ophalen = sneller
+  const [
+    lessonResult,
+    bookingResult,
+    waitlistResult,
+    announcementResult
+  ] = await Promise.all([
+    supabaseClient.rpc('get_lessons_with_counts'),
 
-  if (lessonError) {
-    console.error(lessonError);
+    supabaseClient
+      .from('bookings')
+      .select('lesson_id')
+      .eq('user_id', session.user.id),
+
+    supabaseClient
+      .from('waitlist')
+      .select('lesson_id')
+      .eq('user_id', session.user.id),
+
+    supabaseClient
+      .from('announcements')
+      .select('title, message, starts_at, ends_at, active, created_at')
+      .eq('active', true)
+      .lte('starts_at', today)
+      .or(`ends_at.is.null,ends_at.gte.${today}`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+  ]);
+
+  // Trainingen
+  if (lessonResult.error) {
+    console.error(lessonResult.error);
     lessons = [];
   } else {
-    lessons = lessonData || [];
+    lessons = lessonResult.data || [];
   }
 
-  const {
-    data: bookingData,
-    error: bookingError
-  } = await supabaseClient
-    .from('bookings')
-    .select('lesson_id')
-    .eq('user_id', session.user.id);
-
-  if (bookingError) {
-    console.error(bookingError);
+  // Inschrijvingen
+  if (bookingResult.error) {
+    console.error(bookingResult.error);
     myBookings = [];
   } else {
-    myBookings = (bookingData || [])
-      .map(x => x.lesson_id);
+    myBookings = (bookingResult.data || []).map(x => x.lesson_id);
   }
 
-  const {
-    data: waitlistData,
-    error: waitlistError
-  } = await supabaseClient
-    .from('waitlist')
-    .select('lesson_id')
-    .eq('user_id', session.user.id);
-
-  if (waitlistError) {
-    console.error(waitlistError);
+  // Reservelijst
+  if (waitlistResult.error) {
+    console.error(waitlistResult.error);
     myWaitlist = [];
   } else {
-    myWaitlist = (waitlistData || [])
-      .map(x => x.lesson_id);
+    myWaitlist = (waitlistResult.data || []).map(x => x.lesson_id);
   }
-  // Mededeling ophalen
-const today = new Date().toISOString().slice(0, 10);
 
-const { data: announcements, error: announcementError } =
-  await supabaseClient
-    .from('announcements')
-    .select('title, message, starts_at, ends_at, active, created_at')
-    .eq('active', true)
-    .lte('starts_at', today)
-    .or(`ends_at.is.null,ends_at.gte.${today}`)
-    .order('created_at', { ascending: false })
-    .limit(1);
+  // Mededeling
+  const announcementBox = $('#announcementBox');
 
-const announcementBox = $('#announcementBox');
+  if (announcementResult.error) {
+    console.error(
+      'Mededeling ophalen mislukt:',
+      announcementResult.error
+    );
+    announcementBox.classList.add('hidden');
+  } else if (
+    announcementResult.data &&
+    announcementResult.data.length > 0
+  ) {
+    $('#announcementTitle').textContent =
+      announcementResult.data[0].title;
 
-if (announcementError) {
-  console.error('Mededeling ophalen mislukt:', announcementError);
-  announcementBox.classList.add('hidden');
-} else if (announcements && announcements.length > 0) {
-  $('#announcementTitle').textContent = announcements[0].title;
-  $('#announcementMessage').textContent = announcements[0].message;
-  announcementBox.classList.remove('hidden');
-} else {
-  announcementBox.classList.add('hidden');
+    $('#announcementMessage').textContent =
+      announcementResult.data[0].message;
+
+    announcementBox.classList.remove('hidden');
+  } else {
+    announcementBox.classList.add('hidden');
+  }
 }
-}
+
 /* =========================
    SCHERMEN
 ========================= */
