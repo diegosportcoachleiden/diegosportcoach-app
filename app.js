@@ -1681,6 +1681,12 @@ async function registerServiceWorker() {
       updateViaCache: 'none'
     });
 
+    document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    registration.update();
+  }
+});
+    
     // Nieuwe service worker meteen opvangen
 registration.addEventListener('updatefound', () => {
   const newWorker = registration.installing;
