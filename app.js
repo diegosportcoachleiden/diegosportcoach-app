@@ -119,7 +119,7 @@ async function loadData() {
       .limit(1),
     supabaseClient
   .from('trial_lessons')
-  .select('id, name, trial_date')
+  .select('id, name, trial_date, trial_time')
   .gte('trial_date', today)
   .order('trial_date', { ascending: true })
   ]);
@@ -547,8 +547,11 @@ const displayLessons = upcomingLessons.filter(lesson => {
         const mine = myBookings.includes(l.id);
         const waiting = myWaitlist.includes(l.id);
 
-        const trialsForLesson = trialLessons.filter(
-  trial => trial.trial_date === l.lesson_date
+        trialLessons.filter(
+  trial =>
+    trial.trial_date === l.lesson_date &&
+    String(trial.trial_time || '').slice(0, 5) ===
+      String(l.lesson_time || '').slice(0, 5)
 );
 
 const normalCount = Number(l.booking_count || 0);
@@ -1000,20 +1003,23 @@ async function addLesson() {
   await loadData();
   await renderAdmin();
 }
+
 async function addTrialLesson() {
   const name = $("#trialName").value.trim();
   const date = $("#trialDate").value;
+  const time = $("#trialTime").value;
 
-  if (!name || !date) {
-    toast("Vul naam en datum in");
+  if (!name || !date || !time) {
+    toast("Vul naam, datum en tijd in");
     return;
   }
 
- const { error } = await supabaseClient
+  const { error } = await supabaseClient
     .from("trial_lessons")
     .insert({
       name: name,
-      trial_date: date
+      trial_date: date,
+      trial_time: time
     });
 
   if (error) {
@@ -1024,12 +1030,15 @@ async function addTrialLesson() {
 
   $("#trialName").value = "";
   $("#trialDate").value = "";
+  $("#trialTime").value = "19:30";
 
   toast("Proefles toegevoegd");
+
   await loadData();
-await renderAdmin();
-render();
+  await renderAdmin();
+  render();
 }
+
 
 async function deleteTrialLesson(id) {
   if (!isAdmin) {
@@ -1211,7 +1220,7 @@ async function renderAdmin() {
                 <strong>${esc(trial.name)}</strong>
 
                 <div class="meta">
-                  📅 ${esc(fmtDate(trial.trial_date))}
+               📅 ${esc(fmtDate(trial.trial_date))} · ⏰ ${esc(String(trial.trial_time || '').slice(0, 5))}
                 </div>
               </div>
 
@@ -1434,8 +1443,11 @@ const ws =
 
                   ·
 
-                 ${bs.length + trialLessons.filter(
-  trial => trial.trial_date === l.lesson_date
+${bs.length + trialLessons.filter(
+  trial =>
+    trial.trial_date === l.lesson_date &&
+    String(trial.trial_time || '').slice(0, 5) ===
+      String(l.lesson_time || '').slice(0, 5)
 ).length}/${l.max_participants} deelnemers
 · ${ws.length} reserve
 ${attendees.length
