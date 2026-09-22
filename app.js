@@ -1270,31 +1270,6 @@ if (memberError) {
       bookingError
     );
   }
-
-const trialLessonsBox = $('#trialLessons');
-
-if (trialLessonsBox) {
-  trialLessonsBox.innerHTML = trialLessons.length
-    ? trialLessons.map(trial => `
-        <div class="lesson">
-          <div>
-            <strong>${esc(trial.name)}</strong>
-            <div class="meta">
-              📅 ${esc(fmtDate(trial.trial_date))}
-            </div>
-          </div>
-
-          <button
-            class="danger"
-            type="button"
-            data-delete-trial="${trial.id}"
-          >
-            Verwijderen
-          </button>
-        </div>
-      `).join('')
-    : '<p>Geen proeflessen gepland.</p>';
-}
   
 $('#adminCustomers').innerHTML =
     members?.length
