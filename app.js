@@ -295,7 +295,7 @@ async function signUp() {
   if (!data.session) {
 
     $('#authMsg').textContent =
-      'Account aangemaakt. Controleer je e-mail en log daarna in.';
+  'Account aangemaakt. Check je e-mail en druk op de bevestigingslink. Daarna kun je inloggen.';  
 
     $('#authMsg')
       .classList
