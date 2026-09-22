@@ -550,10 +550,14 @@ const displayLessons = upcomingLessons.filter(lesson => {
         const trialsForLesson = trialLessons.filter(
   trial => trial.trial_date === l.lesson_date
 );
-        
-        const count = Number(l.booking_count || 0);
-        const maxParticipants = Number(l.max_participants || 0);
-        const full = count >= maxParticipants;
+
+const normalCount = Number(l.booking_count || 0);
+const trialCount = trialsForLesson.length;
+
+const count = normalCount + trialCount;
+
+const maxParticipants = Number(l.max_participants || 0);
+const full = count >= maxParticipants;        
 
         const lessonStarted = new Date(
   `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
@@ -1455,7 +1459,9 @@ const ws =
 
                   ·
 
-                  ${bs.length}/${l.max_participants} deelnemers
+                 ${bs.length + trialLessons.filter(
+  trial => trial.trial_date === l.lesson_date
+).length}/${l.max_participants} deelnemers
 · ${ws.length} reserve
 ${attendees.length
   ? `<div class="meta"><strong>Aangemeld:</strong><br>${attendees
