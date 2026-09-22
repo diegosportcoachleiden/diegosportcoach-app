@@ -1394,8 +1394,7 @@ $('#adminCustomers').innerHTML =
             (bookings || [])
               .filter(
                 b =>
-                  b.lesson_id ===
-                  l.id
+                  String(b.lesson_id) === String(l.id)
               );
 const attendees = bs.map(booking => {
   const member = membersById[booking.user_id];
