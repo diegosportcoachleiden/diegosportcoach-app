@@ -971,6 +971,34 @@ async function addLesson() {
   await loadData();
   await renderAdmin();
 }
+async function addTrialLesson() {
+  const name = $("#trialName").value.trim();
+  const date = $("#trialDate").value;
+
+  if (!name || !date) {
+    toast("Vul naam en datum in");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("trial_lessons")
+    .insert({
+      name: name,
+      trial_date: date
+    });
+
+  if (error) {
+    console.error(error);
+    toast("Proefles toevoegen mislukt");
+    return;
+  }
+
+  $("#trialName").value = "";
+  $("#trialDate").value = "";
+
+  toast("Proefles toegevoegd");
+}
+
 async function addWeekLessons() {
   const max_participants = Number($('#weekMax').value);
 
@@ -1548,6 +1576,7 @@ $('#addLesson').onclick =
   addLesson;
 $('#addWeekLessons').onclick =
   addWeekLessons;
+$("#addTrialLesson").onclick = addTrialLesson;
 $('#adminCustomers').onclick = async (e) => {
   const minusBtn = e.target.closest('[data-credit-minus]');
   const plusBtn = e.target.closest('[data-credit-plus]');
