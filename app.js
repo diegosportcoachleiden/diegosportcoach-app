@@ -1005,7 +1005,7 @@ async function addTrialLesson() {
     return;
   }
 
-  const { error } = await supabase
+ const { error } = await supabaseClient
     .from("trial_lessons")
     .insert({
       name: name,
