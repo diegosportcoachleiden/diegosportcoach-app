@@ -582,12 +582,6 @@ const full = count >= maxParticipants;
                 ${count}/${maxParticipants} deelnemers
               </div>
 
-              ${trialsForLesson.length > 0 ? `
-  <div class="meta">
-    🆕 Proefles: ${trialsForLesson.map(t => esc(t.name)).join(", ")}
-  </div>
-` : ""}
-
               <span class="badge ${
                 mine
                   ? 'mine'
