@@ -38,6 +38,7 @@ const toast = msg => {
 let session = null;
 let profile = null;
 let lessons = [];
+let trialLessons = [];
 let myBookings = [];
 let isAdmin = false;
 let myWaitlist = [];
@@ -94,6 +95,7 @@ async function loadData() {
     bookingResult,
     waitlistResult,
     announcementResult
+    trialLessonResult,
   ] = await Promise.all([
     supabaseClient.rpc('get_lessons_with_counts'),
 
@@ -114,7 +116,12 @@ async function loadData() {
       .lte('starts_at', today)
       .or(`ends_at.is.null,ends_at.gte.${today}`)
       .order('created_at', { ascending: false })
-      .limit(1)
+      .limit(1),
+    supabaseClient
+  .from('trial_lessons')
+  .select('id, name, trial_date')
+  .gte('trial_date', today)
+  .order('trial_date', { ascending: true })
   ]);
 
   // Trainingen
@@ -141,6 +148,14 @@ async function loadData() {
     myWaitlist = (waitlistResult.data || []).map(x => x.lesson_id);
   }
 
+  // Proeflessen
+if (trialLessonResult.error) {
+  console.error(trialLessonResult.error);
+  trialLessons = [];
+} else {
+  trialLessons = trialLessonResult.data || [];
+}
+  
   // Mededeling
   const announcementBox = $('#announcementBox');
 
@@ -532,6 +547,10 @@ const displayLessons = upcomingLessons.filter(lesson => {
         const mine = myBookings.includes(l.id);
         const waiting = myWaitlist.includes(l.id);
 
+        const trialsForLesson = trialLessons.filter(
+  trial => trial.trial_date === l.lesson_date
+);
+        
         const count = Number(l.booking_count || 0);
         const maxParticipants = Number(l.max_participants || 0);
         const full = count >= maxParticipants;
@@ -555,6 +574,12 @@ const displayLessons = upcomingLessons.filter(lesson => {
                 ·
                 ${count}/${maxParticipants} deelnemers
               </div>
+
+              ${trialsForLesson.length > 0 ? `
+  <div class="meta">
+    🆕 Proefles: ${trialsForLesson.map(t => esc(t.name)).join(", ")}
+  </div>
+` : ""}
 
               <span class="badge ${
                 mine
