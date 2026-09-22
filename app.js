@@ -547,12 +547,12 @@ const displayLessons = upcomingLessons.filter(lesson => {
         const mine = myBookings.includes(l.id);
         const waiting = myWaitlist.includes(l.id);
 
-        trialLessons.filter(
+const trialsForLesson = trialLessons.filter(
   trial =>
     trial.trial_date === l.lesson_date &&
     String(trial.trial_time || '').slice(0, 5) ===
       String(l.lesson_time || '').slice(0, 5)
-);
+);        
 
 const normalCount = Number(l.booking_count || 0);
 const trialCount = trialsForLesson.length;
