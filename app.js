@@ -1027,6 +1027,36 @@ await renderAdmin();
 render();
 }
 
+async function deleteTrialLesson(id) {
+  if (!isAdmin) {
+    toast('Geen toegang');
+    return;
+  }
+
+  const confirmed = confirm(
+    'Weet je zeker dat je deze proefles wilt verwijderen?'
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient
+    .from('trial_lessons')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error(error);
+    toast('Proefles verwijderen mislukt');
+    return;
+  }
+
+  toast('Proefles verwijderd');
+
+  await loadData();
+  await renderAdmin();
+  render();
+}
+
 async function addWeekLessons() {
   const max_participants = Number($('#weekMax').value);
 
@@ -1162,6 +1192,44 @@ if (alreadyExists) {
 
 async function renderAdmin() {
 
+// PROEFLESSEN TONEN IN BEHEER
+  const trialBox = $('#trialLessons');
+
+  if (trialBox) {
+    if (trialLessons.length > 0) {
+      trialBox.innerHTML = `
+        <div style="margin-top:16px;">
+          <strong>Geplande proeflessen</strong>
+
+          ${trialLessons.map(trial => `
+            <div class="lesson">
+              <div>
+                <strong>${esc(trial.name)}</strong>
+
+                <div class="meta">
+                  📅 ${esc(fmtDate(trial.trial_date))}
+                </div>
+              </div>
+
+              <button
+                class="danger"
+                type="button"
+                data-delete-trial="${trial.id}"
+              >
+                Verwijderen
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      trialBox.innerHTML = `
+        <p class="meta" style="margin-top:16px;">
+          Geen proeflessen gepland.
+        </p>
+      `;
+    }
+  }
   
 const {
   data: members,
@@ -1199,7 +1267,31 @@ if (memberError) {
     );
   }
 
+const trialLessonsBox = $('#trialLessons');
 
+if (trialLessonsBox) {
+  trialLessonsBox.innerHTML = trialLessons.length
+    ? trialLessons.map(trial => `
+        <div class="lesson">
+          <div>
+            <strong>${esc(trial.name)}</strong>
+            <div class="meta">
+              📅 ${esc(fmtDate(trial.trial_date))}
+            </div>
+          </div>
+
+          <button
+            class="danger"
+            type="button"
+            data-delete-trial="${trial.id}"
+          >
+            Verwijderen
+          </button>
+        </div>
+      `).join('')
+    : '<p>Geen proeflessen gepland.</p>';
+}
+  
 $('#adminCustomers').innerHTML =
     members?.length
 
@@ -1605,6 +1697,19 @@ $('#addLesson').onclick =
 $('#addWeekLessons').onclick =
   addWeekLessons;
 $("#addTrialLesson").onclick = addTrialLesson;
+const trialLessonsBox = $('#trialLessons');
+
+if (trialLessonsBox) {
+  trialLessonsBox.onclick = async (e) => {
+    const deleteBtn = e.target.closest('[data-delete-trial]');
+
+    if (!deleteBtn) return;
+
+    await deleteTrialLesson(
+      deleteBtn.dataset.deleteTrial
+    );
+  };
+}
 $('#adminCustomers').onclick = async (e) => {
   const minusBtn = e.target.closest('[data-credit-minus]');
   const plusBtn = e.target.closest('[data-credit-plus]');
