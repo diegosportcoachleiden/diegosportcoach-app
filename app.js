@@ -1022,6 +1022,9 @@ async function addTrialLesson() {
   $("#trialDate").value = "";
 
   toast("Proefles toegevoegd");
+  await loadData();
+await renderAdmin();
+render();
 }
 
 async function addWeekLessons() {
