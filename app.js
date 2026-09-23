@@ -1866,12 +1866,15 @@ await registration.update();
     
     return registration;
   } catch (error) {
-    console.error(
-      'Service worker registreren mislukt:',
-      error
-    );
+  console.error(
+    'Service worker registreren mislukt:',
+    error
+  );
 
-    return null;
+  throw new Error(
+    `Service worker: ${error?.message || 'onbekende fout'}`
+  );
+}  
   }
 }
 
