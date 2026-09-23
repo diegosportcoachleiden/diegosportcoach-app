@@ -1874,6 +1874,7 @@ await registration.update();
 
   return null;
 }
+  }
 
 async function enableNotifications() {
   if (!session?.user) {
