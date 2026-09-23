@@ -201,17 +201,17 @@ function showHomeScreenTip() {
 
   setTimeout(() => {
     const message =
-`ðŸ“± Zet DiegoSportCoach op je beginscherm
+`± Zet DiegoSportCoach op je beginscherm
 
 Zo heb je de app altijd snel bij de hand.
 
 iPhone:
-Safari â†’ Delen â†’ Zet op beginscherm â†’ Voeg toe.
+Safari ·†’ Delen ·†’ Zet op beginscherm ·†’ Voeg toe.
 
 Android:
-Chrome â†’ â‹® â†’ Toevoegen aan startscherm / App installeren.
+Chrome ·†’ ·‹® ·†’ Toevoegen aan startscherm / App installeren.
 
-Lukt het niet? Vraag Diego voor of na de training even om hulp. ðŸ‘`;
+Lukt het niet? Vraag Diego voor of na de training even om hulp. 👍`;
 
     alert(message);
 
@@ -572,13 +572,13 @@ const full = count >= maxParticipants;
             <div>
               <h3>
                 ${esc(fmtDate(l.lesson_date))}
-                â€¢
+                •
                 ${esc(String(l.lesson_time).slice(0, 5))}
               </h3>
 
               <div class="meta">
-                ðŸ“ ${esc(l.location)}
-                Â·
+                 ${esc(l.location)}
+                ·
                 ${count}/${maxParticipants} deelnemers
               </div>
 
@@ -837,7 +837,7 @@ function renderMine() {
                       l.lesson_date
                     )
                   )}
-                  â€¢
+                  •
                   ${esc(
                     String(
                       l.lesson_time
@@ -846,7 +846,7 @@ function renderMine() {
                 </h3>
 
                 <div class="meta">
-                  ðŸ“ ${esc(l.location)}
+                  📍 ${esc(l.location)}
                 </div>
 
               </div>
@@ -1072,7 +1072,7 @@ async function addWeekLessons() {
   ];
 
   if (!checkedDays.length || !max_participants) {
-    toast('Kies minimaal Ã©Ã©n trainingsdag');
+    toast('Kies minimaal één trainingsdag');
     return;
   }
 
@@ -1214,7 +1214,7 @@ async function renderAdmin() {
                 <strong>${esc(trial.name)}</strong>
 
                 <div class="meta">
-               ðŸ“… ${esc(fmtDate(trial.trial_date))} Â· â° ${esc(String(trial.trial_time || '').slice(0, 5))}
+               📍… ${esc(fmtDate(trial.trial_date))} · ·° ${esc(String(trial.trial_time || '').slice(0, 5))}
                 </div>
               </div>
 
@@ -1431,7 +1431,7 @@ const ws =
                       l.lesson_date
                     )
                   )}
-                  â€¢
+                  •
                   ${esc(
                     String(
                       l.lesson_time
@@ -1441,10 +1441,10 @@ const ws =
 
                 <div class="meta">
 
-                  ðŸ“
+                  
                   ${esc(l.location)}
 
-                  Â·
+                  ·
 
 ${bs.length + trialLessons.filter(
   trial =>
@@ -1452,10 +1452,10 @@ ${bs.length + trialLessons.filter(
     String(trial.trial_time || '').slice(0, 5) ===
       String(l.lesson_time || '').slice(0, 5)
 ).length}/${l.max_participants} deelnemers
-Â· ${ws.length} reserve
+· ${ws.length} reserve
 ${attendees.length
   ? `<div class="meta"><strong>Aangemeld:</strong><br>${attendees
-      .map(name => `â€¢ ${esc(name)}`)
+      .map(name => `• ${esc(name)}`)
       .join('<br>')}</div>`
   : '<div class="meta"><strong>Aangemeld:</strong> niemand</div>'
 }
@@ -1964,7 +1964,7 @@ subscription =
       throw error;
     }
 
-    toast('Meldingen staan aan âœ…');
+    toast('Meldingen staan aan ·✅');
 
   } catch (error) {
     console.error(
