@@ -1865,14 +1865,14 @@ registration.addEventListener('updatefound', () => {
 await registration.update();
     
     return registration;
-  } catch (error) {
-    console.error(
-      'Service worker registreren mislukt:',
-      error
-    );
 
-    return null;
-  }
+    } catch (error) {
+  console.error(
+    'Service worker registreren mislukt:',
+    error
+  );
+
+  return null;
 }
 
 async function enableNotifications() {
