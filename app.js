@@ -201,17 +201,17 @@ function showHomeScreenTip() {
 
   setTimeout(() => {
     const message =
-`📱 Zet DiegoSportCoach op je beginscherm
+`ðŸ“± Zet DiegoSportCoach op je beginscherm
 
 Zo heb je de app altijd snel bij de hand.
 
 iPhone:
-Safari → Delen → Zet op beginscherm → Voeg toe.
+Safari â†’ Delen â†’ Zet op beginscherm â†’ Voeg toe.
 
 Android:
-Chrome → ⋮ → Toevoegen aan startscherm / App installeren.
+Chrome â†’ â‹® â†’ Toevoegen aan startscherm / App installeren.
 
-Lukt het niet? Vraag Diego voor of na de training even om hulp. 👍`;
+Lukt het niet? Vraag Diego voor of na de training even om hulp. ðŸ‘`;
 
     alert(message);
 
@@ -572,13 +572,13 @@ const full = count >= maxParticipants;
             <div>
               <h3>
                 ${esc(fmtDate(l.lesson_date))}
-                •
+                â€¢
                 ${esc(String(l.lesson_time).slice(0, 5))}
               </h3>
 
               <div class="meta">
-                📍 ${esc(l.location)}
-                ·
+                ðŸ“ ${esc(l.location)}
+                Â·
                 ${count}/${maxParticipants} deelnemers
               </div>
 
@@ -837,7 +837,7 @@ function renderMine() {
                       l.lesson_date
                     )
                   )}
-                  •
+                  â€¢
                   ${esc(
                     String(
                       l.lesson_time
@@ -846,7 +846,7 @@ function renderMine() {
                 </h3>
 
                 <div class="meta">
-                  📍 ${esc(l.location)}
+                  ðŸ“ ${esc(l.location)}
                 </div>
 
               </div>
@@ -1072,7 +1072,7 @@ async function addWeekLessons() {
   ];
 
   if (!checkedDays.length || !max_participants) {
-    toast('Kies minimaal één trainingsdag');
+    toast('Kies minimaal Ã©Ã©n trainingsdag');
     return;
   }
 
@@ -1214,7 +1214,7 @@ async function renderAdmin() {
                 <strong>${esc(trial.name)}</strong>
 
                 <div class="meta">
-               📅 ${esc(fmtDate(trial.trial_date))} · ⏰ ${esc(String(trial.trial_time || '').slice(0, 5))}
+               ðŸ“… ${esc(fmtDate(trial.trial_date))} Â· â° ${esc(String(trial.trial_time || '').slice(0, 5))}
                 </div>
               </div>
 
@@ -1431,7 +1431,7 @@ const ws =
                       l.lesson_date
                     )
                   )}
-                  •
+                  â€¢
                   ${esc(
                     String(
                       l.lesson_time
@@ -1441,10 +1441,10 @@ const ws =
 
                 <div class="meta">
 
-                  📍
+                  ðŸ“
                   ${esc(l.location)}
 
-                  ·
+                  Â·
 
 ${bs.length + trialLessons.filter(
   trial =>
@@ -1452,10 +1452,10 @@ ${bs.length + trialLessons.filter(
     String(trial.trial_time || '').slice(0, 5) ===
       String(l.lesson_time || '').slice(0, 5)
 ).length}/${l.max_participants} deelnemers
-· ${ws.length} reserve
+Â· ${ws.length} reserve
 ${attendees.length
   ? `<div class="meta"><strong>Aangemeld:</strong><br>${attendees
-      .map(name => `• ${esc(name)}`)
+      .map(name => `â€¢ ${esc(name)}`)
       .join('<br>')}</div>`
   : '<div class="meta"><strong>Aangemeld:</strong> niemand</div>'
 }
@@ -1865,14 +1865,14 @@ registration.addEventListener('updatefound', () => {
 await registration.update();
     
     return registration;
+  } catch (error) {
+    console.error(
+      'Service worker registreren mislukt:',
+      error
+    );
 
-    } catch (error) {
-  console.error(
-    'Service worker registreren mislukt:',
-    error
-  );
-
-  return null;
+    return null;
+  }
 }
 
 async function enableNotifications() {
@@ -1963,7 +1963,7 @@ subscription =
       throw error;
     }
 
-    toast('Meldingen staan aan ✅');
+    toast('Meldingen staan aan âœ…');
 
   } catch (error) {
     console.error(
