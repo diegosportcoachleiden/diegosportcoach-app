@@ -1971,9 +1971,9 @@ subscription =
       error
     );
 
-    toast(
-      'Meldingen aanzetten mislukt'
-    );
+   toast(
+  `Mislukt: ${error?.message || 'onbekende fout'}`
+); 
   }
 }
 
