@@ -1,4 +1,4 @@
-/ DiegoSportCoach Service Worker
+// DiegoSportCoach Service Worker
 // Verse appbestanden + pushmeldingen
 
 const APP_URL =
