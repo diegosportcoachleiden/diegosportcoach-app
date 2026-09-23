@@ -1403,6 +1403,16 @@ const attendees = bs.map(booking => {
     ? member.name || member.email
     : 'Onbekende deelnemer';
 });
+
+const trialAttendees = (trialLessons || [])
+  .filter(trial =>
+    trial.trial_date === l.lesson_date &&
+    String(trial.trial_time || '').slice(0, 5) ===
+      String(l.lesson_time || '').slice(0, 5)
+  )
+  .map(trial => trial.name);
+
+attendees.push(...trialAttendees);
 const ws =
   (await supabaseClient
     .from('waitlist')
