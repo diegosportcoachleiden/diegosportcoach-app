@@ -1931,6 +1931,20 @@ if (forgotPasswordBtn) {
   forgotPasswordBtn.onclick = forgotPassword;
 }
 
+const accountHelpBtn = $('#accountHelpBtn');
+const accountHelp = $('#accountHelp');
+
+if (accountHelpBtn && accountHelp) {
+  accountHelpBtn.onclick = () => {
+    accountHelp.classList.toggle('hidden');
+
+    accountHelpBtn.textContent =
+      accountHelp.classList.contains('hidden')
+        ? '📖 Bekijk uitleg account aanmaken'
+        : '📖 Verberg uitleg account aanmaken';
+  };
+}
+
 const saveNewPasswordBtn = $('#saveNewPasswordBtn');
 
 if (saveNewPasswordBtn) {
