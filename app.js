@@ -925,23 +925,27 @@ function renderMine() {
 
               let cancelText = '';
 
-              if (isWeekend || isFridayMorning) {
-                const deadline = new Date(lessonStart);
+if (isWeekend || isFridayMorning) {
+  const deadline = new Date(lessonStart);
 
-                deadline.setDate(
-                  deadline.getDate() - 1
-                );
+  deadline.setDate(deadline.getDate() - 1);
 
-                deadline.setHours(21, 0, 0, 0);
+  const dayNames = [
+    'zondag',
+    'maandag',
+    'dinsdag',
+    'woensdag',
+    'donderdag',
+    'vrijdag',
+    'zaterdag'
+  ];
 
-                cancelText =
-                  `🟢 Kosteloos afmelden t/m ${fmtDate(
-                    deadline.toISOString().slice(0, 10)
-                  )} 21:00`;
-              } else {
-                cancelText =
-                  `🟢 Kosteloos afmelden tot 16:00 op de trainingsdag`;
-              }
+  cancelText =
+    `🟢 Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
+} else {
+  cancelText =
+    '🟢 Kosteloos afmelden tot 16:00 op de trainingsdag';
+}
 
               return `
                 <div class="lesson">
@@ -1901,6 +1905,24 @@ const loginBtn = $('#loginBtn');
 
 if (loginBtn) {
   loginBtn.onclick = signIn;
+}
+
+const togglePasswordBtn = $('#togglePassword');
+const passwordInput = $('#passwordInput');
+
+if (togglePasswordBtn && passwordInput) {
+  togglePasswordBtn.onclick = () => {
+    const isHidden = passwordInput.type === 'password';
+
+    passwordInput.type = isHidden ? 'text' : 'password';
+
+    // Verborgen = aapje, zichtbaar = oogje
+    togglePasswordBtn.textContent = isHidden ? '👁️' : '🙈';
+    togglePasswordBtn.setAttribute(
+      'aria-label',
+      isHidden ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'
+    );
+  };
 }
 
 const forgotPasswordBtn = $('#forgotPasswordBtn');
