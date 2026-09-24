@@ -811,13 +811,19 @@ async function toggleBooking(id) {
     return;
   }
 
-  if (mine) {
-    toast('Je bent uitgeschreven');
-  } else if (full) {
-    toast('Je staat op de reservelijst');
+ if (mine) {
+  toast('Je bent uitgeschreven');
+} else if (full) {
+  toast('Je staat op de reservelijst');
+} else {
+  const remainingCredit = Number(profile.rides || 0) - 1;
+
+  if (remainingCredit <= 0) {
+    toast(`⚠️ Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} • ${lesson.location}. Dit was je laatste trainingstegoed.`);
   } else {
-    toast('Je bent ingeschreven! 1 training tegoed afgeschreven');
+    toast(`✅ Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} • ${lesson.location}`);
   }
+}
 
   await loadProfile();
   await loadData();
@@ -845,11 +851,33 @@ async function toggleWaitlist(id) {
     return;
   }
 
-  toast(
-    waiting
-      ? 'Van reservelijst verwijderd'
-      : 'Je staat op de reservelijst'
-  );
+  if (waiting) {
+    toast('Van reservelijst verwijderd');
+  } else {
+    const { data: waitlistRows, error: waitlistError } =
+      await supabaseClient
+        .from('waitlist')
+        .select('user_id, created_at')
+        .eq('lesson_id', id)
+        .order('created_at', { ascending: true });
+
+    if (waitlistError) {
+      toast('⏳ Je staat op de reservelijst');
+    } else {
+      const position =
+        (waitlistRows || []).findIndex(
+          row =>
+            String(row.user_id) ===
+            String(session.user.id)
+        ) + 1;
+
+      if (position > 0) {
+        toast(`⏳ Je staat op reserveplek ${position}`);
+      } else {
+        toast('⏳ Je staat op de reservelijst');
+      }
+    }
+  }
 
   await loadProfile();
   await loadData();
@@ -881,31 +909,73 @@ function renderMine() {
 
       ${
         mine.length
-          ? mine.map(l => `
-              <div class="lesson">
+          ? mine.map(l => {
+              const lessonStart = new Date(
+                `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+              );
 
-                <div>
+              const day = lessonStart.getDay();
 
-                  <h3>
-                    ${esc(fmtDate(l.lesson_date))}
-                    •
-                    ${esc(String(l.lesson_time).slice(0, 5))}
-                  </h3>
+              const isWeekend =
+                day === 0 || day === 6;
 
-                  <div class="meta">
-                    📍 ${esc(l.location)}
+              const isFridayMorning =
+                day === 5 &&
+                lessonStart.getHours() === 9;
+
+              let cancelText = '';
+
+              if (isWeekend || isFridayMorning) {
+                const deadline = new Date(lessonStart);
+
+                deadline.setDate(
+                  deadline.getDate() - 1
+                );
+
+                deadline.setHours(21, 0, 0, 0);
+
+                cancelText =
+                  `🟢 Kosteloos afmelden t/m ${fmtDate(
+                    deadline.toISOString().slice(0, 10)
+                  )} 21:00`;
+              } else {
+                cancelText =
+                  `🟢 Kosteloos afmelden tot 16:00 op de trainingsdag`;
+              }
+
+              return `
+                <div class="lesson">
+
+                  <div>
+
+                   <h3>
+  ${
+    l.lesson_date === new Date().toLocaleDateString('en-CA')
+      ? '🔥 VANDAAG'
+      : esc(fmtDate(l.lesson_date))
+  }
+  •
+  ${esc(String(l.lesson_time).slice(0, 5))}
+</h3>
+
+                    <div class="meta">
+                      📍 ${esc(l.location)}
+                    </div>
+
+                    <div class="meta">
+                      ${cancelText}
+                    </div>
+
                   </div>
 
+                  <span class="badge mine">
+                    Ingeschreven
+                  </span>
+
                 </div>
-
-                <span class="badge mine">
-                  Ingeschreven
-                </span>
-
-              </div>
-            `).join('')
-
-          : '<p>Je bent nog niet ingeschreven voor een training.</p>'
+              `;
+            }).join('')
+          : `<p>Je bent nog niet ingeschreven voor een training.</p>`
       }
 
     </div>
