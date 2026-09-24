@@ -1908,8 +1908,17 @@ function updateSignUpButton() {
     emailInput?.value.trim().length > 0 &&
     signUpPasswordInput?.value.length >= 6;
 
-  signUpBtn.classList.toggle('primary', complete);
-  signUpBtn.classList.toggle('secondary', !complete);
+  if (complete) {
+    signUpBtn.classList.remove('secondary');
+    signUpBtn.classList.remove('primary');
+    signUpBtn.style.background = '#28a745';
+    signUpBtn.style.color = '#ffffff';
+  } else {
+    signUpBtn.classList.remove('primary');
+    signUpBtn.classList.add('secondary');
+    signUpBtn.style.background = '';
+    signUpBtn.style.color = '';
+  }
 }
 
 if (signUpBtn) {
