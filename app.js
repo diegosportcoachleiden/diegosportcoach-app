@@ -1896,9 +1896,32 @@ document.addEventListener(
 ========================= */
 
 const signUpBtn = $('#signUpBtn');
+const nameInput = $('#nameInput');
+const emailInput = $('#emailInput');
+const signUpPasswordInput = $('#passwordInput');
+
+function updateSignUpButton() {
+  if (!signUpBtn) return;
+
+  const complete =
+    nameInput?.value.trim().length > 0 &&
+    emailInput?.value.trim().length > 0 &&
+    signUpPasswordInput?.value.length >= 6;
+
+  signUpBtn.classList.toggle('primary', complete);
+  signUpBtn.classList.toggle('secondary', !complete);
+}
 
 if (signUpBtn) {
   signUpBtn.onclick = signUp;
+
+  [nameInput, emailInput, signUpPasswordInput].forEach(input => {
+    if (input) {
+      input.addEventListener('input', updateSignUpButton);
+    }
+  });
+
+  updateSignUpButton();
 }
 
 const loginBtn = $('#loginBtn');
