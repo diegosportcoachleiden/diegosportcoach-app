@@ -495,13 +495,23 @@ async function renderLessons() {
     now.getDate() - ((now.getDay() + 6) % 7)
   );
 
+  monday.setHours(0, 0, 0, 0);
+
   const upcomingLessons = lessons
     .filter(l => {
-      const dateTime = new Date(
+      const lessonStart = new Date(
         `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
       );
 
-      return dateTime >= monday;
+      // Training blijft tot 1 uur na de start zichtbaar.
+      const lessonEnd = new Date(
+        lessonStart.getTime() + 60 * 60 * 1000
+      );
+
+      return (
+        lessonStart >= monday &&
+        lessonEnd > now
+      );
     })
     .sort((a, b) => {
       const aTime = new Date(
@@ -571,8 +581,11 @@ async function renderLessons() {
         const trialCount = trialsForLesson.length;
         const count = normalCount + trialCount;
 
-        const maxParticipants = Number(l.max_participants || 0);
-        const full = count >= maxParticipants;
+        const maxParticipants =
+          Number(l.max_participants || 0);
+
+        const full =
+          count >= maxParticipants;
 
         const lessonStarted =
           new Date(
@@ -698,7 +711,6 @@ async function renderLessons() {
     };
   });
 }
-
 
 /* =========================
    INSCHRIJVEN / UITSCHRIJVEN
