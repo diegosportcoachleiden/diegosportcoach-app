@@ -8,9 +8,8 @@ const APP_URL =
 // INSTALL
 // --------------------------------------------------
 
-self.addEventListener('install', () => {
-  // Nieuwe service worker direct activeren
-  self.skipWaiting();
+self.addEventListener('install', event => {
+  event.waitUntil(self.skipWaiting());
 });
 
 // --------------------------------------------------
@@ -20,7 +19,6 @@ self.addEventListener('install', () => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     (async () => {
-      // Oude caches van eerdere versies verwijderen
       const cacheNames = await caches.keys();
 
       await Promise.all(
@@ -29,7 +27,6 @@ self.addEventListener('activate', event => {
         )
       );
 
-      // Meteen controle over geopende app krijgen
       await self.clients.claim();
     })()
   );
@@ -42,14 +39,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
 
-  // Alleen GET-verzoeken behandelen
   if (request.method !== 'GET') {
     return;
   }
 
   const url = new URL(request.url);
 
-  // Alleen bestanden van onze eigen app behandelen
   if (url.origin !== self.location.origin) {
     return;
   }
@@ -58,8 +53,6 @@ self.addEventListener('fetch', event => {
     fetch(request, {
       cache: 'no-store'
     }).catch(() => {
-      // Alleen als internet niet beschikbaar is:
-      // kijken of de browser zelf nog iets beschikbaar heeft.
       return caches.match(request);
     })
   );
@@ -70,29 +63,63 @@ self.addEventListener('fetch', event => {
 // --------------------------------------------------
 
 self.addEventListener('push', event => {
-  let data = {};
+  let title = 'DiegoSportCoach';
+  let body =
+    'Er is een nieuwe melding van DiegoSportCoach.';
+  let targetUrl = APP_URL;
 
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch (error) {
-    data = {
-      title: 'DiegoSportCoach',
-      body: event.data ? event.data.text() : ''
-    };
+  if (event.data) {
+    try {
+      const data = event.data.json();
+
+      if (
+        data &&
+        typeof data === 'object'
+      ) {
+        if (data.title) {
+          title = String(data.title);
+        }
+
+        if (data.body) {
+          body = String(data.body);
+        }
+
+        if (data.url) {
+          targetUrl = String(data.url);
+        }
+      }
+    } catch (jsonError) {
+      try {
+        const text = event.data.text();
+
+        if (text) {
+          body = text;
+        }
+      } catch (textError) {
+        console.error(
+          'Pushbericht kon niet worden gelezen:',
+          textError
+        );
+      }
+    }
   }
 
-  const title =
-    data.title || 'DiegoSportCoach';
-
   const options = {
-    body:
-      data.body ||
-      'Er is een nieuwe melding van DiegoSportCoach.',
-    icon: './icon-192.png',
-    badge: './icon-192.png',
+    body: body,
+
+    icon:
+      'https://diegosportcoachleiden.github.io/diegosportcoach-app/icon-192.png',
+
+    badge:
+      'https://diegosportcoachleiden.github.io/diegosportcoach-app/icon-192.png',
+
     data: {
-      url: data.url || APP_URL
-    }
+      url: targetUrl
+    },
+
+    tag: 'diegosportcoach-push',
+
+    renotify: true
   };
 
   event.waitUntil(
@@ -107,31 +134,42 @@ self.addEventListener('push', event => {
 // KLIK OP PUSHMELDING
 // --------------------------------------------------
 
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
+self.addEventListener(
+  'notificationclick',
+  event => {
+    event.notification.close();
 
-  const targetUrl =
-    event.notification.data?.url || APP_URL;
+    const targetUrl =
+      event.notification.data?.url ||
+      APP_URL;
 
-  event.waitUntil(
-    (async () => {
-      const clientList = await self.clients.matchAll({
-        type: 'window',
-        includeUncontrolled: true
-      });
+    event.waitUntil(
+      (async () => {
+        const clientList =
+          await self.clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+          });
 
-      // App staat al open
-      for (const client of clientList) {
-        if ('focus' in client) {
-          await client.navigate(targetUrl);
-          return client.focus();
+        for (const client of clientList) {
+          if (
+            client.url.startsWith(APP_URL) &&
+            'focus' in client
+          ) {
+            if ('navigate' in client) {
+              await client.navigate(targetUrl);
+            }
+
+            return client.focus();
+          }
         }
-      }
 
-      // App staat nog niet open
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(targetUrl);
-      }
-    })()
-  );
-});
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(
+            targetUrl
+          );
+        }
+      })()
+    );
+  }
+);
