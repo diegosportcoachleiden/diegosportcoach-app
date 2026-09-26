@@ -341,6 +341,13 @@ async function signIn() {
     return;
   }
 
+  const authMsg = $('#authMsg');
+
+if (authMsg) {
+  authMsg.textContent = '';
+  authMsg.classList.add('hidden');
+}
+  
   await refreshSession();
 }
 
