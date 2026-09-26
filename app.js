@@ -1367,6 +1367,179 @@ async function addWeekLessons() {
    BEHEER TONEN
 ========================= */
 
+/*
+ * Training annuleren vanuit beheer.
+ *
+ * - Geeft trainingstegoed terug aan aangemelde klanten
+ * - Verwijdert de reservelijst
+ * - Verwijdert de inschrijvingen
+ * - Verwijdert daarna de training
+ */
+async function cancelLesson(id) {
+  if (!isAdmin) {
+    toast('Geen toegang');
+    return;
+  }
+
+  const lesson = lessons.find(
+    l => String(l.id) === String(id)
+  );
+
+  if (!lesson) {
+    toast('Training niet gevonden');
+    return;
+  }
+
+  const confirmed = confirm(
+    `Weet je zeker dat je deze training wilt annuleren?\n\n` +
+    `${fmtDate(lesson.lesson_date)} • ` +
+    `${String(lesson.lesson_time).slice(0, 5)}\n\n` +
+    `Aangemelde klanten krijgen hun trainingstegoed terug.`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+
+    /* =========================
+       INSCHRIJVINGEN OPHALEN
+    ========================= */
+
+    const {
+      data: lessonBookings,
+      error: bookingsError
+    } = await supabaseClient
+      .from('bookings')
+      .select('user_id')
+      .eq('lesson_id', id);
+
+    if (bookingsError) {
+      console.error(bookingsError);
+      toast('Inschrijvingen ophalen mislukt');
+      return;
+    }
+
+
+    /* =========================
+       TEGOED TERUGGEVEN
+    ========================= */
+
+    for (const booking of (lessonBookings || [])) {
+
+      const {
+        data: customer,
+        error: customerError
+      } = await supabaseClient
+        .from('profiles')
+        .select('credits')
+        .eq('id', booking.user_id)
+        .single();
+
+      if (customerError) {
+        console.error(customerError);
+        toast(
+          'Training niet geannuleerd: tegoed teruggeven mislukt'
+        );
+        return;
+      }
+
+      const currentCredits =
+        Number(customer?.credits || 0);
+
+      const { error: creditError } =
+        await supabaseClient
+          .from('profiles')
+          .update({
+            credits: currentCredits + 1
+          })
+          .eq('id', booking.user_id);
+
+      if (creditError) {
+        console.error(creditError);
+        toast(
+          'Training niet geannuleerd: tegoed teruggeven mislukt'
+        );
+        return;
+      }
+    }
+
+
+    /* =========================
+       RESERVELIJST VERWIJDEREN
+    ========================= */
+
+    const { error: waitlistError } =
+      await supabaseClient
+        .from('waitlist')
+        .delete()
+        .eq('lesson_id', id);
+
+    if (waitlistError) {
+      console.error(waitlistError);
+      toast('Reservelijst verwijderen mislukt');
+      return;
+    }
+
+
+    /* =========================
+       INSCHRIJVINGEN VERWIJDEREN
+    ========================= */
+
+    const { error: deleteBookingsError } =
+      await supabaseClient
+        .from('bookings')
+        .delete()
+        .eq('lesson_id', id);
+
+    if (deleteBookingsError) {
+      console.error(deleteBookingsError);
+      toast('Inschrijvingen verwijderen mislukt');
+      return;
+    }
+
+
+    /* =========================
+       TRAINING VERWIJDEREN
+    ========================= */
+
+    const { error: lessonError } =
+      await supabaseClient
+        .from('lessons')
+        .delete()
+        .eq('id', id);
+
+    if (lessonError) {
+      console.error(lessonError);
+      toast('Training verwijderen mislukt');
+      return;
+    }
+
+
+    /* =========================
+       KLAAR
+    ========================= */
+
+    toast('Training geannuleerd');
+
+    await loadData();
+    await renderAdmin();
+
+    render();
+
+  } catch (error) {
+    console.error(error);
+    toast('Annuleren van training mislukt');
+  }
+}
+
+
+/* =========================
+   BEHEER WEERGEVEN
+========================= */
+
+
 async function renderAdmin() {
   const trialBox = $('#trialLessons');
 
@@ -1652,6 +1825,16 @@ async function renderAdmin() {
                         </div>
                       `
                   }
+<div style="margin-top:12px;">
+  <button
+    type="button"
+    class="danger"
+    onclick="cancelLesson('${l.id}')"
+  >
+    Training annuleren
+  </button>
+</div>
+
 
                 </div>
 
