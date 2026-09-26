@@ -591,203 +591,58 @@
 </section>
       
 
-      <!-- WEEKTRAININGEN TOEVOEGEN -->
+     <!-- TRAINING TOEVOEGEN -->
 
 <section class="card">
 
-  <h2>Hele week klaarzetten</h2>
-
-  <p>
-    Kies de maandag van de week die je wilt klaarzetten.
-    Vink daarna alleen de trainingen aan die deze week doorgaan.
-  </p>
+  <h2>Training toevoegen</h2>
 
   <label>
-    Week begint op
+    Datum
   </label>
 
   <input
-    id="weekStartDate"
+    id="lessonDate"
     type="date"
   >
 
+  <label>
+    Tijd
+  </label>
 
-  <div id="weekLessons">
+  <input
+    id="lessonTime"
+    type="time"
+    value="19:30"
+  >
 
-    <!-- MAANDAG -->
+  <label>
+    Locatie
+  </label>
 
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="0"
-        data-slot="1"
-        data-location="Station De Vink"
-      >
-      Maandag
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="0"
-      data-slot="1"
-      value="19:30"
-    >
-
-
-    <!-- DINSDAG -->
-
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="1"
-        data-slot="1"
-        data-location="Station De Vink"
-      >
-      Dinsdag
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="1"
-      data-slot="1"
-      value="19:30"
-    >
-
-
-    <!-- WOENSDAG TRAINING 1 -->
-
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="2"
-        data-slot="1"
-        data-location="Station De Vink"
-      >
-      Woensdag training 1
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="2"
-      data-slot="1"
-      value="19:30"
-    >
-
-
-    <!-- WOENSDAG TRAINING 2 -->
-
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="2"
-        data-slot="2"
-        data-location="Smitslust"
-      >
-      Woensdag training 2
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="2"
-      data-slot="2"
-      value="20:40"
-    >
-
-
-    <!-- VRIJDAG -->
-
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="4"
-        data-slot="1"
-        data-location="Station De Vink"
-      >
-      Vrijdag
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="4"
-      data-slot="1"
-      value="09:00"
-    >
-
-
-    <!-- ZATERDAG -->
-
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="5"
-        data-slot="1"
-        data-location="Station De Vink"
-      >
-      Zaterdag
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="5"
-      data-slot="1"
-      value="09:00"
-    >
-
-
-    <!-- ZONDAG -->
-
-    <label>
-      <input
-        type="checkbox"
-        class="weekEnabled"
-        data-offset="6"
-        data-slot="1"
-        data-location="Station De Vink"
-      >
-      Zondag
-    </label>
-
-    <input
-      type="time"
-      class="weekTime"
-      data-offset="6"
-      data-slot="1"
-      value="10:00"
-    >
-
-  </div>
-
+  <input
+    id="lessonLocation"
+    type="text"
+    value="Station De Vink"
+  >
 
   <label>
     Max. deelnemers
   </label>
 
   <input
-    id="weekMax"
+    id="lessonMax"
     type="number"
     min="1"
     value="16"
   >
 
-
   <button
-    id="addWeekLessons"
+    id="addLesson"
     class="primary"
     type="button"
   >
-    Week klaarzetten
+    Training toevoegen
   </button>
 
 </section>
@@ -818,7 +673,7 @@
   ></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=101"></script>
+<script src="app.js?v=102"></script>
 
 <script>
   const accountHelpBtn = document.getElementById("accountHelpBtn");
