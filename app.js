@@ -1179,20 +1179,39 @@ async function addWeekLessons() {
     return;
   }
 
-  const now = new Date();
+  /*
+   * Weekplanning:
+   * we plannen altijd de EERSTVOLGENDE trainingsweek.
+   * Dus bijvoorbeeld:
+   * zaterdag 26 september 2026
+   * -> maandag 28 september 2026.
+   */
 
-  // Maandag van deze week bepalen.
-  const monday = new Date(now);
-  const currentDay = now.getDay();
+  const today = new Date();
+
+  today.setHours(12, 0, 0, 0);
+
+  const currentDay = today.getDay();
+
+  let daysUntilNextMonday;
+
+  if (currentDay === 0) {
+    // Zondag -> morgen
+    daysUntilNextMonday = 1;
+  } else {
+    // Maandag t/m zaterdag -> eerstvolgende maandag
+    daysUntilNextMonday = 8 - currentDay;
+  }
+
+  const monday = new Date(today);
 
   monday.setDate(
-    now.getDate() - ((currentDay + 6) % 7)
+    today.getDate() + daysUntilNextMonday
   );
 
   monday.setHours(12, 0, 0, 0);
 
   const newLessons = [];
-  let alreadyExisting = 0;
 
   for (const checkbox of checkedDays) {
     const targetDay = Number(
@@ -1208,7 +1227,7 @@ async function addWeekLessons() {
       );
 
     const lesson_time =
-      timeInput?.value?.trim();
+      timeInput?.value;
 
     if (!lesson_time) {
       continue;
@@ -1219,7 +1238,17 @@ async function addWeekLessons() {
       $('#weekLocation')?.value.trim() ||
       'Station De Vink';
 
-    // JS: zondag = 0, maandag = 1 enz.
+    /*
+     * data-day:
+     * maandag = 1
+     * dinsdag = 2
+     * woensdag = 3
+     * donderdag = 4
+     * vrijdag = 5
+     * zaterdag = 6
+     * zondag = 0
+     */
+
     const offset =
       targetDay === 0
         ? 6
@@ -1232,27 +1261,6 @@ async function addWeekLessons() {
       monday.getDate() + offset
     );
 
-    const [hours, minutes] =
-      lesson_time.split(':').map(Number);
-
-    const lessonDateTime =
-      new Date(lessonDate);
-
-    lessonDateTime.setHours(
-      hours,
-      minutes,
-      0,
-      0
-    );
-
-    // Is dit trainingsmoment al voorbij?
-    // Dan dezelfde dag van volgende week gebruiken.
-    if (lessonDateTime <= now) {
-      lessonDate.setDate(
-        lessonDate.getDate() + 7
-      );
-    }
-
     const lesson_date =
       `${lessonDate.getFullYear()}-` +
       `${String(
@@ -1262,25 +1270,24 @@ async function addWeekLessons() {
         lessonDate.getDate()
       ).padStart(2, '0')}`;
 
-    const existsInDatabase =
+    /*
+     * Controleer of deze training
+     * al bestaat.
+     */
+
+    const alreadyExists =
       lessons.some(l =>
         l.lesson_date === lesson_date &&
         String(l.lesson_time).slice(0, 5) ===
           String(lesson_time).slice(0, 5)
-      );
-
-    const existsInNewLessons =
+      ) ||
       newLessons.some(l =>
         l.lesson_date === lesson_date &&
         String(l.lesson_time).slice(0, 5) ===
           String(lesson_time).slice(0, 5)
       );
 
-    if (
-      existsInDatabase ||
-      existsInNewLessons
-    ) {
-      alreadyExisting++;
+    if (alreadyExists) {
       continue;
     }
 
@@ -1293,16 +1300,9 @@ async function addWeekLessons() {
   }
 
   if (!newLessons.length) {
-    if (alreadyExisting > 0) {
-      toast(
-        'Deze geselecteerde trainingen staan al ingepland'
-      );
-    } else {
-      toast(
-        'Controleer de geselecteerde dagen en tijden'
-      );
-    }
-
+    toast(
+      'Deze geselecteerde trainingen staan al ingepland'
+    );
     return;
   }
 
@@ -1313,32 +1313,22 @@ async function addWeekLessons() {
 
   if (error) {
     console.error(
-      'Weekplanning toevoegen mislukt:',
+      'Weektrainingen toevoegen mislukt:',
       error
     );
 
-    toast(
-      'Weekplanning toevoegen mislukt: ' +
-      error.message
-    );
-
+    toast(error.message);
     return;
   }
 
-  if (alreadyExisting > 0) {
-    toast(
-      `${newLessons.length} trainingen toegevoegd · ${alreadyExisting} bestonden al`
-    );
-  } else {
-    toast(
-      `${newLessons.length} trainingen toegevoegd`
-    );
-  }
+  toast(
+    `${newLessons.length} trainingen toegevoegd`
+  );
 
   document
     .querySelectorAll('.weekEnabled')
-    .forEach(checkbox => {
-      checkbox.checked = false;
+    .forEach(el => {
+      el.checked = false;
     });
 
   await loadData();
