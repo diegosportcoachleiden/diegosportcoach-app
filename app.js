@@ -489,72 +489,40 @@ async function renderLessons() {
 
   const now = new Date();
 
-  const monday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - ((now.getDay() + 6) % 7)
-  );
-
-  monday.setHours(0, 0, 0, 0);
-
-  const upcomingLessons = lessons
-    .filter(l => {
-      const lessonStart = new Date(
-        `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
-      );
-
-      // Training blijft tot 1 uur na de start zichtbaar.
-      const lessonEnd = new Date(
-        lessonStart.getTime() + 60 * 60 * 1000
-      );
-
-      return (
-        lessonStart >= monday &&
-        lessonEnd > now
-      );
-    })
-    .sort((a, b) => {
-      const aTime = new Date(
-        `${a.lesson_date}T${String(a.lesson_time).slice(0, 5)}:00`
-      );
-
-      const bTime = new Date(
-        `${b.lesson_date}T${String(b.lesson_time).slice(0, 5)}:00`
-      );
-
-      return aTime - bTime;
-    });
-
-  if (!upcomingLessons.length) {
-    box.innerHTML = `
-      <div class="card">
-        <p>Er staan nog geen trainingen gepland.</p>
-      </div>
-    `;
-    return;
-  }
-
-  const firstLessonDate = new Date(
-    `${upcomingLessons[0].lesson_date}T12:00:00`
-  );
-
-  const endOfWeek = new Date(firstLessonDate);
-  const dayOfWeek = endOfWeek.getDay();
-
-  endOfWeek.setDate(
-    endOfWeek.getDate() +
-    (dayOfWeek === 0 ? 0 : 7 - dayOfWeek)
-  );
-
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  const displayLessons = upcomingLessons.filter(lesson => {
-    const lessonDate = new Date(
-      `${lesson.lesson_date}T12:00:00`
+const upcomingLessons = lessons
+  .filter(l => {
+    const lessonStart = new Date(
+      `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
     );
 
-    return lessonDate <= endOfWeek;
+    const lessonEnd = new Date(
+      lessonStart.getTime() + 60 * 60 * 1000
+    );
+
+    return lessonEnd > now;
+  })
+  .sort((a, b) => {
+    const aTime = new Date(
+      `${a.lesson_date}T${String(a.lesson_time).slice(0, 5)}:00`
+    );
+
+    const bTime = new Date(
+      `${b.lesson_date}T${String(b.lesson_time).slice(0, 5)}:00`
+    );
+
+    return aTime - bTime;
   });
+
+if (!upcomingLessons.length) {
+  box.innerHTML = `
+    <div class="card">
+      <p>Er staan nog geen trainingen gepland.</p>
+    </div>
+  `;
+  return;
+}
+
+const displayLessons = upcomingLessons;
 
   box.innerHTML = `
     <div class="card">
