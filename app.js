@@ -522,7 +522,28 @@ if (!upcomingLessons.length) {
   return;
 }
 
-const displayLessons = upcomingLessons;
+// Toon alleen de week van de eerstvolgende beschikbare training
+const firstLessonDate = new Date(
+  `${upcomingLessons[0].lesson_date}T12:00:00`
+);
+
+const startOfWeek = new Date(firstLessonDate);
+startOfWeek.setDate(
+  firstLessonDate.getDate() - ((firstLessonDate.getDay() + 6) % 7)
+);
+startOfWeek.setHours(0, 0, 0, 0);
+
+const endOfWeek = new Date(startOfWeek);
+endOfWeek.setDate(startOfWeek.getDate() + 6);
+endOfWeek.setHours(23, 59, 59, 999);
+
+const displayLessons = upcomingLessons.filter(lesson => {
+  const lessonDate = new Date(
+    `${lesson.lesson_date}T12:00:00`
+  );
+
+  return lessonDate >= startOfWeek && lessonDate <= endOfWeek;
+});
 
   box.innerHTML = `
     <div class="card">
