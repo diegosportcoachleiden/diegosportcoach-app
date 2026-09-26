@@ -1,24 +1,18 @@
 // DiegoSportCoach Service Worker
-// Verse appbestanden + pushmeldingen
+// Altijd de nieuwste appbestanden gebruiken + pushmeldingen
 
 const APP_URL =
   'https://diegosportcoachleiden.github.io/diegosportcoach-app/';
 
-// --------------------------------------------------
-// INSTALL
-// --------------------------------------------------
-
 self.addEventListener('install', event => {
-  event.waitUntil(self.skipWaiting());
+  // Nieuwe service worker direct activeren
+  self.skipWaiting();
 });
-
-// --------------------------------------------------
-// ACTIVATE
-// --------------------------------------------------
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     (async () => {
+      // Alle oude caches verwijderen
       const cacheNames = await caches.keys();
 
       await Promise.all(
@@ -27,55 +21,53 @@ self.addEventListener('activate', event => {
         )
       );
 
+      // Meteen controle krijgen over geopende app
       await self.clients.claim();
     })()
   );
 });
 
-// --------------------------------------------------
-// FETCH
-// --------------------------------------------------
-
 self.addEventListener('fetch', event => {
   const request = event.request;
 
+  // Alleen GET-verzoeken behandelen
   if (request.method !== 'GET') {
     return;
   }
 
   const url = new URL(request.url);
 
+  // Supabase/CDN/etc. gewoon normaal laten lopen
   if (url.origin !== self.location.origin) {
     return;
   }
 
+  // Voor onze eigen appbestanden:
+  // altijd eerst rechtstreeks van internet halen.
   event.respondWith(
     fetch(request, {
       cache: 'no-store'
     }).catch(() => {
+      // Alleen als internet niet beschikbaar is
+      // eventueel bestaande browsercache proberen.
       return caches.match(request);
     })
   );
 });
 
-// --------------------------------------------------
-// PUSHMELDINGEN
-// --------------------------------------------------
-
 self.addEventListener('push', event => {
   let title = 'DiegoSportCoach';
+
   let body =
     'Er is een nieuwe melding van DiegoSportCoach.';
+
   let targetUrl = APP_URL;
 
   if (event.data) {
     try {
       const data = event.data.json();
 
-      if (
-        data &&
-        typeof data === 'object'
-      ) {
+      if (data && typeof data === 'object') {
         if (data.title) {
           title = String(data.title);
         }
@@ -105,7 +97,7 @@ self.addEventListener('push', event => {
   }
 
   const options = {
-    body: body,
+    body,
 
     icon:
       'https://diegosportcoachleiden.github.io/diegosportcoach-app/icon-192.png',
@@ -129,10 +121,6 @@ self.addEventListener('push', event => {
     )
   );
 });
-
-// --------------------------------------------------
-// KLIK OP PUSHMELDING
-// --------------------------------------------------
 
 self.addEventListener(
   'notificationclick',
