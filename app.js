@@ -2271,6 +2271,18 @@ async function registerServiceWorker() {
   }
 
   try {
+    let reloading = false;
+
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      () => {
+        if (reloading) return;
+
+        reloading = true;
+        window.location.reload();
+      }
+    );
+
     const registration =
       await navigator.serviceWorker.register(
         './sw.js',
@@ -2279,6 +2291,12 @@ async function registerServiceWorker() {
         }
       );
 
+    // Bij iedere start direct controleren
+    // of er een nieuwe service worker is.
+    await registration.update();
+
+    // Ook opnieuw controleren wanneer
+    // de app weer naar de voorgrond komt.
     document.addEventListener(
       'visibilitychange',
       () => {
@@ -2295,31 +2313,6 @@ async function registerServiceWorker() {
         }
       }
     );
-
-    registration.addEventListener(
-      'updatefound',
-      () => {
-        const newWorker =
-          registration.installing;
-
-        if (!newWorker) return;
-
-        newWorker.addEventListener(
-          'statechange',
-          () => {
-            if (
-              newWorker.state ===
-                'activated' &&
-              navigator.serviceWorker.controller
-            ) {
-              window.location.reload();
-            }
-          }
-        );
-      }
-    );
-
-    await registration.update();
 
     return registration;
 
