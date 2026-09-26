@@ -1331,7 +1331,7 @@ async function cancelLesson(id) {
         error: customerError
       } = await supabaseClient
         .from('profiles')
-        .select('credits')
+       .select('rides')
         .eq('id', booking.user_id)
         .single();
 
@@ -1343,15 +1343,15 @@ async function cancelLesson(id) {
         return;
       }
 
-      const currentCredits =
-        Number(customer?.credits || 0);
+    const currentRides =
+  Number(customer?.rides || 0);
 
       const { error: creditError } =
         await supabaseClient
           .from('profiles')
-          .update({
-            credits: currentCredits + 1
-          })
+     .update({
+  rides: currentRides + 1
+})
           .eq('id', booking.user_id);
 
       if (creditError) {
