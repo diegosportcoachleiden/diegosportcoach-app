@@ -1166,189 +1166,112 @@ async function deleteTrialLesson(id) {
 
 
 async function addWeekLessons() {
+  const maxParticipants = Number($('#weekMax')?.value || 16);
 
-  const startDateValue =
-    $('#weekStartDate')?.value;
-
-  const max_participants =
-    Number($('#weekMax')?.value || 16);
-
-  const checkedLessons = [
-    ...document.querySelectorAll(
-      '.weekEnabled:checked'
-    )
+  const checkedDays = [
+    ...document.querySelectorAll('.weekEnabled:checked')
   ];
 
-
-  if (!startDateValue) {
-    toast('Kies eerst de maandag van de week');
+  if (checkedDays.length === 0) {
+    toast('Kies minimaal één trainingsdag');
     return;
   }
 
+  // Eerstvolgende maandag bepalen
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
 
-  if (!checkedLessons.length) {
-    toast('Vink minimaal één training aan');
-    return;
-  }
+  const dayNumber = today.getDay();
 
+  const daysUntilMonday =
+    dayNumber === 0
+      ? 1
+      : 8 - dayNumber;
 
-  /*
-   * De gekozen datum moet een maandag zijn.
-   * We maken de datum lokaal aan om
-   * problemen met tijdzones te voorkomen.
-   */
-
-  const parts =
-    startDateValue.split('-');
-
-  const monday =
-    new Date(
-      Number(parts[0]),
-      Number(parts[1]) - 1,
-      Number(parts[2]),
-      12,
-      0,
-      0,
-      0
-    );
-
-
-  if (monday.getDay() !== 1) {
-    toast(
-      'Kies bij "Week begint op" een maandag'
-    );
-    return;
-  }
-
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + daysUntilMonday);
 
   const newLessons = [];
 
+  for (const checkbox of checkedDays) {
+    const targetDay = Number(checkbox.dataset.day);
+    const slot = checkbox.dataset.slot || '1';
 
-  for (const checkbox of checkedLessons) {
+    const timeInput = document.querySelector(
+      `.weekTime[data-day="${targetDay}"][data-slot="${slot}"]`
+    );
 
-    const offset =
-      Number(checkbox.dataset.offset);
-
-    const slot =
-      checkbox.dataset.slot || '1';
-
-
-    const timeInput =
-      document.querySelector(
-        `.weekTime[data-offset="${offset}"][data-slot="${slot}"]`
-      );
-
-
-    const lesson_time =
-      timeInput?.value;
-
-
-    if (!lesson_time) {
+    if (!timeInput || !timeInput.value) {
       continue;
     }
 
+    const lessonTime = timeInput.value;
+
+    // Maandag = 1 ... zaterdag = 6, zondag = 0
+    const offset =
+      targetDay === 0
+        ? 6
+        : targetDay - 1;
+
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + offset);
+
+    const lessonDate =
+      `${date.getFullYear()}-` +
+      `${String(date.getMonth() + 1).padStart(2, '0')}-` +
+      `${String(date.getDate()).padStart(2, '0')}`;
 
     const location =
       checkbox.dataset.location ||
+      $('#weekLocation')?.value?.trim() ||
       'Station De Vink';
 
-
-    /*
-     * Datum bepalen vanaf de
-     * gekozen maandag.
-     *
-     * 0 = maandag
-     * 1 = dinsdag
-     * 2 = woensdag
-     * 4 = vrijdag
-     * 5 = zaterdag
-     * 6 = zondag
-     */
-
-    const lessonDate =
-      new Date(monday);
-
-    lessonDate.setDate(
-      monday.getDate() + offset
+    // Alleen dezelfde DATUM + TIJD geldt als dezelfde training
+    const exists = lessons.some(lesson =>
+      String(lesson.lesson_date) === lessonDate &&
+      String(lesson.lesson_time).slice(0, 5) ===
+        String(lessonTime).slice(0, 5)
     );
 
-
-    const lesson_date =
-      `${lessonDate.getFullYear()}-` +
-      `${String(
-        lessonDate.getMonth() + 1
-      ).padStart(2, '0')}-` +
-      `${String(
-        lessonDate.getDate()
-      ).padStart(2, '0')}`;
-
-
-    /*
-     * Voorkomen dat exact dezelfde
-     * training dubbel wordt toegevoegd.
-     */
-
-    const alreadyExists =
-      lessons.some(l =>
-        l.lesson_date === lesson_date &&
-        String(l.lesson_time).slice(0, 5) ===
-          String(lesson_time).slice(0, 5)
-      ) ||
-      newLessons.some(l =>
-        l.lesson_date === lesson_date &&
-        String(l.lesson_time).slice(0, 5) ===
-          String(lesson_time).slice(0, 5)
-      );
-
-
-    if (alreadyExists) {
+    if (exists) {
       continue;
     }
 
+    // Voorkom dubbel binnen dezelfde klik
+    const alreadyAdded = newLessons.some(lesson =>
+      lesson.lesson_date === lessonDate &&
+      String(lesson.lesson_time).slice(0, 5) ===
+        String(lessonTime).slice(0, 5)
+    );
+
+    if (alreadyAdded) {
+      continue;
+    }
 
     newLessons.push({
-      lesson_date,
-      lesson_time,
-      location,
-      max_participants
+      lesson_date: lessonDate,
+      lesson_time: lessonTime,
+      location: location,
+      max_participants: maxParticipants
     });
   }
 
-
-  if (!newLessons.length) {
-    toast(
-      'Alle geselecteerde trainingen staan al ingepland'
-    );
+  if (newLessons.length === 0) {
+    toast('Deze trainingen staan al ingepland voor de komende week');
     return;
   }
 
-
-  const { error } =
-    await supabaseClient
-      .from('lessons')
-      .insert(newLessons);
-
+  const { error } = await supabaseClient
+    .from('lessons')
+    .insert(newLessons);
 
   if (error) {
-
-    console.error(
-      'Week klaarzetten mislukt:',
-      error
-    );
-
-    toast(error.message);
+    console.error('Weekplanning fout:', error);
+    toast(`Fout bij klaarzetten: ${error.message}`);
     return;
   }
 
-
-  toast(
-    `${newLessons.length} trainingen toegevoegd`
-  );
-
-
-  /*
-   * Na toevoegen vinkjes weer leegmaken.
-   */
+  toast(`${newLessons.length} trainingen succesvol toegevoegd`);
 
   document
     .querySelectorAll('.weekEnabled')
@@ -1356,10 +1279,8 @@ async function addWeekLessons() {
       checkbox.checked = false;
     });
 
-
   await loadData();
   await renderAdmin();
-
   render();
 }
 
