@@ -1166,93 +1166,104 @@ async function deleteTrialLesson(id) {
 
 
 async function addWeekLessons() {
-  const max_participants = Number(
-    $('#weekMax')?.value || 16
-  );
 
-  const checkedDays = [
-    ...document.querySelectorAll('.weekEnabled:checked')
+  const startDateValue =
+    $('#weekStartDate')?.value;
+
+  const max_participants =
+    Number($('#weekMax')?.value || 16);
+
+  const checkedLessons = [
+    ...document.querySelectorAll(
+      '.weekEnabled:checked'
+    )
   ];
 
-  if (!checkedDays.length) {
-    toast('Kies minimaal één trainingsdag');
+
+  if (!startDateValue) {
+    toast('Kies eerst de maandag van de week');
     return;
   }
 
-  /*
-   * Weekplanning:
-   * we plannen altijd de EERSTVOLGENDE trainingsweek.
-   * Dus bijvoorbeeld:
-   * zaterdag 26 september 2026
-   * -> maandag 28 september 2026.
-   */
 
-  const today = new Date();
-
-  today.setHours(12, 0, 0, 0);
-
-  const currentDay = today.getDay();
-
-  let daysUntilNextMonday;
-
-  if (currentDay === 0) {
-    // Zondag -> morgen
-    daysUntilNextMonday = 1;
-  } else {
-    // Maandag t/m zaterdag -> eerstvolgende maandag
-    daysUntilNextMonday = 8 - currentDay;
+  if (!checkedLessons.length) {
+    toast('Vink minimaal één training aan');
+    return;
   }
 
-  const monday = new Date(today);
 
-  monday.setDate(
-    today.getDate() + daysUntilNextMonday
-  );
+  /*
+   * De gekozen datum moet een maandag zijn.
+   * We maken de datum lokaal aan om
+   * problemen met tijdzones te voorkomen.
+   */
 
-  monday.setHours(12, 0, 0, 0);
+  const parts =
+    startDateValue.split('-');
+
+  const monday =
+    new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2]),
+      12,
+      0,
+      0,
+      0
+    );
+
+
+  if (monday.getDay() !== 1) {
+    toast(
+      'Kies bij "Week begint op" een maandag'
+    );
+    return;
+  }
+
 
   const newLessons = [];
 
-  for (const checkbox of checkedDays) {
-    const targetDay = Number(
-      checkbox.dataset.day
-    );
+
+  for (const checkbox of checkedLessons) {
+
+    const offset =
+      Number(checkbox.dataset.offset);
 
     const slot =
       checkbox.dataset.slot || '1';
 
+
     const timeInput =
       document.querySelector(
-        `.weekTime[data-day="${targetDay}"][data-slot="${slot}"]`
+        `.weekTime[data-offset="${offset}"][data-slot="${slot}"]`
       );
+
 
     const lesson_time =
       timeInput?.value;
+
 
     if (!lesson_time) {
       continue;
     }
 
+
     const location =
       checkbox.dataset.location ||
-      $('#weekLocation')?.value.trim() ||
       'Station De Vink';
 
-    /*
-     * data-day:
-     * maandag = 1
-     * dinsdag = 2
-     * woensdag = 3
-     * donderdag = 4
-     * vrijdag = 5
-     * zaterdag = 6
-     * zondag = 0
-     */
 
-    const offset =
-      targetDay === 0
-        ? 6
-        : targetDay - 1;
+    /*
+     * Datum bepalen vanaf de
+     * gekozen maandag.
+     *
+     * 0 = maandag
+     * 1 = dinsdag
+     * 2 = woensdag
+     * 4 = vrijdag
+     * 5 = zaterdag
+     * 6 = zondag
+     */
 
     const lessonDate =
       new Date(monday);
@@ -1260,6 +1271,7 @@ async function addWeekLessons() {
     lessonDate.setDate(
       monday.getDate() + offset
     );
+
 
     const lesson_date =
       `${lessonDate.getFullYear()}-` +
@@ -1270,9 +1282,10 @@ async function addWeekLessons() {
         lessonDate.getDate()
       ).padStart(2, '0')}`;
 
+
     /*
-     * Controleer of deze training
-     * al bestaat.
+     * Voorkomen dat exact dezelfde
+     * training dubbel wordt toegevoegd.
      */
 
     const alreadyExists =
@@ -1287,9 +1300,11 @@ async function addWeekLessons() {
           String(lesson_time).slice(0, 5)
       );
 
+
     if (alreadyExists) {
       continue;
     }
+
 
     newLessons.push({
       lesson_date,
@@ -1299,21 +1314,25 @@ async function addWeekLessons() {
     });
   }
 
+
   if (!newLessons.length) {
     toast(
-      'Deze geselecteerde trainingen staan al ingepland'
+      'Alle geselecteerde trainingen staan al ingepland'
     );
     return;
   }
+
 
   const { error } =
     await supabaseClient
       .from('lessons')
       .insert(newLessons);
 
+
   if (error) {
+
     console.error(
-      'Weektrainingen toevoegen mislukt:',
+      'Week klaarzetten mislukt:',
       error
     );
 
@@ -1321,22 +1340,28 @@ async function addWeekLessons() {
     return;
   }
 
+
   toast(
     `${newLessons.length} trainingen toegevoegd`
   );
 
+
+  /*
+   * Na toevoegen vinkjes weer leegmaken.
+   */
+
   document
     .querySelectorAll('.weekEnabled')
-    .forEach(el => {
-      el.checked = false;
+    .forEach(checkbox => {
+      checkbox.checked = false;
     });
+
 
   await loadData();
   await renderAdmin();
 
   render();
 }
-
 
 /* =========================
    BEHEER TONEN
