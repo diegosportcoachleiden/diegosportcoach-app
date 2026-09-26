@@ -1143,6 +1143,8 @@ async function deleteTrialLesson(id) {
 
 
 async function addWeekLessons() {
+  await loadData();
+  
   const maxParticipants = Number($('#weekMax')?.value || 16);
 
   const checkedDays = [
