@@ -489,17 +489,28 @@ async function renderLessons() {
 
   const now = new Date();
 
-const upcomingLessons = lessons
+// Bepaal de eerstvolgende maandag
+const startOfWeek = new Date(now);
+const day = now.getDay();
+
+const daysUntilMonday = day === 0 ? 1 : 8 - day;
+
+startOfWeek.setDate(now.getDate() + daysUntilMonday);
+startOfWeek.setHours(0, 0, 0, 0);
+
+// Zondag van die trainingsweek
+const endOfWeek = new Date(startOfWeek);
+endOfWeek.setDate(startOfWeek.getDate() + 6);
+endOfWeek.setHours(23, 59, 59, 999);
+
+// Alleen trainingen van die week
+const displayLessons = lessons
   .filter(l => {
     const lessonStart = new Date(
       `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
     );
 
-    const lessonEnd = new Date(
-      lessonStart.getTime() + 60 * 60 * 1000
-    );
-
-    return lessonEnd > now;
+    return lessonStart >= startOfWeek && lessonStart <= endOfWeek;
   })
   .sort((a, b) => {
     const aTime = new Date(
@@ -513,7 +524,7 @@ const upcomingLessons = lessons
     return aTime - bTime;
   });
 
-if (!upcomingLessons.length) {
+if (!displayLessons.length) {
   box.innerHTML = `
     <div class="card">
       <p>Er staan nog geen trainingen gepland.</p>
@@ -521,29 +532,6 @@ if (!upcomingLessons.length) {
   `;
   return;
 }
-
-// Toon alleen de week van de eerstvolgende beschikbare training
-const firstLessonDate = new Date(
-  `${upcomingLessons[0].lesson_date}T12:00:00`
-);
-
-const startOfWeek = new Date(firstLessonDate);
-startOfWeek.setDate(
-  firstLessonDate.getDate() - ((firstLessonDate.getDay() + 6) % 7)
-);
-startOfWeek.setHours(0, 0, 0, 0);
-
-const endOfWeek = new Date(startOfWeek);
-endOfWeek.setDate(startOfWeek.getDate() + 6);
-endOfWeek.setHours(23, 59, 59, 999);
-
-const displayLessons = upcomingLessons.filter(lesson => {
-  const lessonDate = new Date(
-    `${lesson.lesson_date}T12:00:00`
-  );
-
-  return lessonDate >= startOfWeek && lessonDate <= endOfWeek;
-});
 
   box.innerHTML = `
     <div class="card">
