@@ -496,13 +496,13 @@ async function renderLessons() {
 
   const now = new Date();
 
-// Bepaal de eerstvolgende maandag
+// Bepaal de maandag van de huidige trainingsweek
 const startOfWeek = new Date(now);
 const day = now.getDay();
 
-const daysUntilMonday = day === 0 ? 1 : 8 - day;
+const daysSinceMonday = day === 0 ? 6 : day - 1;
 
-startOfWeek.setDate(now.getDate() + daysUntilMonday);
+startOfWeek.setDate(now.getDate() - daysSinceMonday);
 startOfWeek.setHours(0, 0, 0, 0);
 
 // Zondag van die trainingsweek
@@ -1732,16 +1732,23 @@ async function renderAdmin() {
                         </div>
                       `
                   }
-<div style="margin-top:12px;">
-  <button
-    type="button"
-    class="danger"
-    onclick="cancelLesson('${l.id}')"
-  >
-    Training annuleren
-  </button>
-</div>
-
+${
+  new Date(
+    `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+  ) > new Date()
+    ? `
+      <div style="margin-top:12px;">
+        <button
+          type="button"
+          class="danger"
+          onclick="cancelLesson('${l.id}')"
+        >
+          Training annuleren
+        </button>
+      </div>
+    `
+    : ''
+}
 
                 </div>
 
