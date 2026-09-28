@@ -1530,7 +1530,11 @@ async function renderAdmin() {
     adminCustomers.innerHTML =
       members?.length
         ? `
-          <table class="table">
+         <div style="margin-bottom:12px;">
+  <strong>Aantal klanten: ${members.length}</strong>
+</div>
+
+<table class="table">
 
             <thead>
               <tr>
