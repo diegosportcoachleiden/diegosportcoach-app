@@ -2,6 +2,19 @@ const SUPABASE_URL = 'https://zjvqbfmxaibjcdpttgmj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZIVgG4DUG8zo6C1hoPkJA_x4YbnKkA';
 const VAPID_PUBLIC_KEY = 'BMPjOZf-fOI24uFcNXu_0JPIuoTG5tkbBWBStOV26a4tAgV6sm3ZNO_uD2Ur1Rg1UD5jEPHHV4oMFqSaZze8SHg';
 
+// Herken een resetlink voordat Supabase de URL verwerkt.
+let isPasswordRecovery =
+  new URLSearchParams(window.location.hash.slice(1))
+    .get('type') === 'recovery';
+
+function showPasswordRecovery() {
+  $('#loginView')?.classList.add('hidden');
+  $('#appView')?.classList.add('hidden');
+  $('#adminView')?.classList.add('hidden');
+  $('#logoutBtn')?.classList.add('hidden');
+  $('#resetPasswordView')?.classList.remove('hidden');
+}
+
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
@@ -202,6 +215,11 @@ async function loadData() {
 ========================= */
 
 function showLogin() {
+  if (isPasswordRecovery) {
+    showPasswordRecovery();
+    return;
+  }
+
   $('#loginView')?.classList.remove('hidden');
   $('#appView')?.classList.add('hidden');
   $('#adminView')?.classList.add('hidden');
@@ -217,17 +235,17 @@ function showHomeScreenTip() {
 
   setTimeout(() => {
     const message =
-`📱 Zet DiegoSportCoach op je beginscherm
+`ð± Zet DiegoSportCoach op je beginscherm
 
 Zo heb je de app altijd snel bij de hand.
 
 iPhone:
-Safari → Delen → Zet op beginscherm → Voeg toe.
+Safari â Delen â Zet op beginscherm â Voeg toe.
 
 Android:
-Chrome → ⋮ → Toevoegen aan startscherm / App installeren.
+Chrome â â® â Toevoegen aan startscherm / App installeren.
 
-Lukt het niet? Vraag Diego voor of na de training even om hulp. 👍`;
+Lukt het niet? Vraag Diego voor of na de training even om hulp. ð`;
 
     alert(message);
 
@@ -237,6 +255,11 @@ Lukt het niet? Vraag Diego voor of na de training even om hulp. 👍`;
 
 
 function showApp() {
+  if (isPasswordRecovery) {
+    showPasswordRecovery();
+    return;
+  }
+
   $('#loginView')?.classList.add('hidden');
   $('#resetPasswordView')?.classList.add('hidden');
   $('#appView')?.classList.remove('hidden');
@@ -256,9 +279,19 @@ function showApp() {
 
 
 async function refreshSession() {
-  const { data } = await supabaseClient.auth.getSession();
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    toast('Sessie ophalen mislukt: ' + error.message);
+    return;
+  }
 
   session = data.session;
+
+  if (isPasswordRecovery) {
+    showPasswordRecovery();
+    return;
+  }
 
   if (!session) {
     showLogin();
@@ -266,11 +299,27 @@ async function refreshSession() {
   }
 
   await loadProfile();
+
+  if (isPasswordRecovery) {
+    showPasswordRecovery();
+    return;
+  }
+
+  // Uitloggen kan plaatsvinden terwijl het profiel wordt geladen.
+  if (!session) {
+    showLogin();
+    return;
+  }
+
   await loadData();
+
+  if (!session && !isPasswordRecovery) {
+    showLogin();
+    return;
+  }
 
   showApp();
 }
-
 
 /* =========================
    ACCOUNT AANMAKEN
@@ -379,29 +428,50 @@ async function forgotPassword() {
 
 async function saveNewPassword() {
   const password = $('#newPasswordInput')?.value || '';
+  const button = $('#saveNewPasswordBtn');
+
+  if (button?.disabled) return;
 
   if (password.length < 6) {
     toast('Wachtwoord moet minimaal 6 tekens zijn');
     return;
   }
 
-  const { error } = await supabaseClient.auth.updateUser({
-    password
-  });
+  if (button) button.disabled = true;
 
-  if (error) {
-    toast('Wachtwoord wijzigen mislukt: ' + error.message);
-    return;
+  try {
+    const { error } = await supabaseClient.auth.updateUser({ password });
+
+    if (error) {
+      toast('Wachtwoord wijzigen mislukt: ' + error.message);
+      return;
+    }
+
+    // Houd de resetpagina vast tijdens USER_UPDATED en SIGNED_OUT.
+    const { error: signOutError } = await supabaseClient.auth.signOut();
+
+    if (signOutError) {
+      toast('Wachtwoord gewijzigd, maar uitloggen mislukt: ' + signOutError.message);
+      return;
+    }
+
+    isPasswordRecovery = false;
+    session = null;
+    profile = null;
+    isAdmin = false;
+
+    if ($('#newPasswordInput')) $('#newPasswordInput').value = '';
+    if ($('#passwordInput')) $('#passwordInput').value = '';
+
+    showLogin();
+    toast('Wachtwoord gewijzigd! Log in met je nieuwe wachtwoord.');
+  } catch (error) {
+    console.error(error);
+    toast('Er ging iets mis. Probeer het opnieuw.');
+  } finally {
+    if (button) button.disabled = false;
   }
-
-  toast('Wachtwoord succesvol gewijzigd!');
-
-  $('#resetPasswordView')?.classList.add('hidden');
-  $('#loginView')?.classList.remove('hidden');
-
-  await supabaseClient.auth.signOut();
 }
-
 
 /* =========================
    UITLOGGEN
@@ -583,13 +653,13 @@ if (!displayLessons.length) {
 
               <h3>
                 ${esc(fmtDate(l.lesson_date))}
-                •
+                â¢
                 ${esc(String(l.lesson_time).slice(0, 5))}
               </h3>
 
               <div class="meta">
-                📍 ${esc(l.location)}
-                ·
+                ð ${esc(l.location)}
+                Â·
                 ${count}/${maxParticipants} deelnemers
               </div>
 
@@ -815,9 +885,9 @@ async function toggleBooking(id) {
   const remainingCredit = Number(profile.rides || 0) - 1;
 
   if (remainingCredit <= 0) {
-    toast(`⚠️ Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} • ${lesson.location}. Dit was je laatste trainingstegoed.`);
+    toast(`â ï¸ Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} â¢ ${lesson.location}. Dit was je laatste trainingstegoed.`);
   } else {
-    toast(`✅ Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} • ${lesson.location}`);
+    toast(`â Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} â¢ ${lesson.location}`);
   }
 }
 
@@ -858,7 +928,7 @@ async function toggleWaitlist(id) {
         .order('created_at', { ascending: true });
 
     if (waitlistError) {
-      toast('⏳ Je staat op de reservelijst');
+      toast('â³ Je staat op de reservelijst');
     } else {
       const position =
         (waitlistRows || []).findIndex(
@@ -868,9 +938,9 @@ async function toggleWaitlist(id) {
         ) + 1;
 
       if (position > 0) {
-        toast(`⏳ Je staat op reserveplek ${position}`);
+        toast(`â³ Je staat op reserveplek ${position}`);
       } else {
-        toast('⏳ Je staat op de reservelijst');
+        toast('â³ Je staat op de reservelijst');
       }
     }
   }
@@ -937,10 +1007,10 @@ if (isWeekend || isFridayMorning) {
   ];
 
   cancelText =
-    `🟢 Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
+    `ð¢ Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
 } else {
   cancelText =
-    '🟢 Kosteloos afmelden tot 16:00 op de trainingsdag';
+    'ð¢ Kosteloos afmelden tot 16:00 op de trainingsdag';
 }
 
               return `
@@ -951,15 +1021,15 @@ if (isWeekend || isFridayMorning) {
                    <h3>
   ${
     l.lesson_date === new Date().toLocaleDateString('en-CA')
-      ? '🔥 VANDAAG'
+      ? 'ð¥ VANDAAG'
       : esc(fmtDate(l.lesson_date))
   }
-  •
+  â¢
   ${esc(String(l.lesson_time).slice(0, 5))}
 </h3>
 
                     <div class="meta">
-                      📍 ${esc(l.location)}
+                      ð ${esc(l.location)}
                     </div>
 
                     <div class="meta">
@@ -1159,7 +1229,7 @@ async function addWeekLessons() {
   ];
 
   if (checkedDays.length === 0) {
-    toast('Kies minimaal één trainingsdag');
+    toast('Kies minimaal Ã©Ã©n trainingsdag');
     return;
   }
 
@@ -1299,7 +1369,7 @@ async function cancelLesson(id) {
 
   const confirmed = confirm(
     `Weet je zeker dat je deze training wilt annuleren?\n\n` +
-    `${fmtDate(lesson.lesson_date)} • ` +
+    `${fmtDate(lesson.lesson_date)} â¢ ` +
     `${String(lesson.lesson_time).slice(0, 5)}\n\n` +
     `Aangemelde klanten krijgen hun trainingstegoed terug.`
   );
@@ -1465,9 +1535,9 @@ async function renderAdmin() {
                 <strong>${esc(trial.name)}</strong>
 
                 <div class="meta">
-                  📅 ${esc(fmtDate(trial.trial_date))}
-                  ·
-                  ⏰ ${esc(String(trial.trial_time || '').slice(0, 5))}
+                  ð ${esc(fmtDate(trial.trial_date))}
+                  Â·
+                  â° ${esc(String(trial.trial_time || '').slice(0, 5))}
                 </div>
 
               </div>
@@ -1705,19 +1775,19 @@ async function renderAdmin() {
 
                 <h3>
                   ${esc(fmtDate(l.lesson_date))}
-                  •
+                  â¢
                   ${esc(String(l.lesson_time).slice(0, 5))}
                 </h3>
 
                 <div class="meta">
 
-                  📍 ${esc(l.location)}
+                  ð ${esc(l.location)}
 
-                  ·
+                  Â·
 
                   ${bs.length + trialCount}/${l.max_participants} deelnemers
 
-                  · ${ws.length} reserve
+                  Â· ${ws.length} reserve
 
                   ${
                     attendees.length
@@ -1726,7 +1796,7 @@ async function renderAdmin() {
                           <strong>Aangemeld:</strong>
                           <br>
                           ${attendees
-                            .map(name => `• ${esc(name)}`)
+                            .map(name => `â¢ ${esc(name)}`)
                             .join('<br>')}
                         </div>
                       `
@@ -2131,7 +2201,7 @@ if (togglePasswordBtn && passwordInput) {
     passwordInput.type = isHidden ? 'text' : 'password';
 
     // Verborgen = aapje, zichtbaar = oogje
-    togglePasswordBtn.textContent = isHidden ? '👁️' : '🙈';
+    togglePasswordBtn.textContent = isHidden ? 'ðï¸' : 'ð';
     togglePasswordBtn.setAttribute(
       'aria-label',
       isHidden ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'
@@ -2154,8 +2224,8 @@ if (accountHelpBtn && accountHelp) {
 
     accountHelpBtn.textContent =
       accountHelp.classList.contains('hidden')
-        ? '📖 Bekijk uitleg account aanmaken'
-        : '📖 Verberg uitleg account aanmaken';
+        ? 'ð Bekijk uitleg account aanmaken'
+        : 'ð Verberg uitleg account aanmaken';
   };
 }
 
@@ -2332,39 +2402,35 @@ $$('.buy').forEach(btn => {
    SUPABASE LOGIN STATUS
 ========================= */
 
-supabaseClient.auth.onAuthStateChange(
-  async (
-    event,
-    newSession
-  ) => {
-    if (
-      event ===
-      'PASSWORD_RECOVERY'
-    ) {
-      session = newSession;
+supabaseClient.auth.onAuthStateChange((event, newSession) => {
+  session = newSession;
 
-      $('#loginView')?.classList.add('hidden');
-      $('#appView')?.classList.add('hidden');
-      $('#adminView')?.classList.add('hidden');
-      $('#logoutBtn')?.classList.add('hidden');
-      $('#resetPasswordView')?.classList.remove('hidden');
-
-      return;
-    }
-
-    session = newSession;
-
-    if (session) {
-      await loadProfile();
-      await loadData();
-
-      showApp();
-    } else {
-      showLogin();
-    }
+  if (event === 'PASSWORD_RECOVERY') {
+    isPasswordRecovery = true;
+    showPasswordRecovery();
+    return;
   }
-);
 
+  if (isPasswordRecovery) {
+    showPasswordRecovery();
+    return;
+  }
+
+  if (!newSession) {
+    profile = null;
+    isAdmin = false;
+    showLogin();
+    return;
+  }
+
+  // Supabase-aanroepen buiten de auth-callback uitvoeren.
+  setTimeout(() => {
+    refreshSession().catch(error => {
+      console.error('Sessie vernieuwen mislukt:', error);
+      toast('App laden mislukt. Probeer opnieuw.');
+    });
+  }, 0);
+});
 
 /* =========================
    PUSH / SERVICE WORKER
@@ -2405,7 +2471,9 @@ async function registerServiceWorker() {
         if (reloading) return;
 
         reloading = true;
-        window.location.reload();
+        if (!isPasswordRecovery) {
+          window.location.reload();
+        }
       }
     );
 
@@ -2558,7 +2626,7 @@ async function enableNotifications() {
       throw error;
     }
 
-    toast('Meldingen staan aan ✅');
+    toast('Meldingen staan aan â');
 
   } catch (error) {
     console.error(
@@ -2594,7 +2662,9 @@ async function startApp() {
     navigator.serviceWorker.addEventListener(
       'controllerchange',
       () => {
-        window.location.reload();
+        if (!isPasswordRecovery) {
+          window.location.reload();
+        }
       }
     );
   }
