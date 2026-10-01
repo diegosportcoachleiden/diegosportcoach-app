@@ -235,17 +235,17 @@ function showHomeScreenTip() {
 
   setTimeout(() => {
     const message =
-`ð± Zet DiegoSportCoach op je beginscherm
+`\u{1f4f1} Zet DiegoSportCoach op je beginscherm
 
 Zo heb je de app altijd snel bij de hand.
 
 iPhone:
-Safari â Delen â Zet op beginscherm â Voeg toe.
+Safari \u{2192} Delen \u{2192} Zet op beginscherm \u{2192} Voeg toe.
 
 Android:
-Chrome â â® â Toevoegen aan startscherm / App installeren.
+Chrome \u{2192} \u{22ee} \u{2192} Toevoegen aan startscherm / App installeren.
 
-Lukt het niet? Vraag Diego voor of na de training even om hulp. ð`;
+Lukt het niet? Vraag Diego voor of na de training even om hulp. \u{1f44d}`;
 
     alert(message);
 
@@ -653,13 +653,13 @@ if (!displayLessons.length) {
 
               <h3>
                 ${esc(fmtDate(l.lesson_date))}
-                â¢
+                \u{2022}
                 ${esc(String(l.lesson_time).slice(0, 5))}
               </h3>
 
               <div class="meta">
-                ð ${esc(l.location)}
-                Â·
+                \u{1f4cd} ${esc(l.location)}
+                \u{b7}
                 ${count}/${maxParticipants} deelnemers
               </div>
 
@@ -885,9 +885,9 @@ async function toggleBooking(id) {
   const remainingCredit = Number(profile.rides || 0) - 1;
 
   if (remainingCredit <= 0) {
-    toast(`â ï¸ Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} â¢ ${lesson.location}. Dit was je laatste trainingstegoed.`);
+    toast(`\u{26a0}\u{fe0f} Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} \u{2022} ${lesson.location}. Dit was je laatste trainingstegoed.`);
   } else {
-    toast(`â Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} â¢ ${lesson.location}`);
+    toast(`\u{2705} Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} \u{2022} ${lesson.location}`);
   }
 }
 
@@ -928,7 +928,7 @@ async function toggleWaitlist(id) {
         .order('created_at', { ascending: true });
 
     if (waitlistError) {
-      toast('â³ Je staat op de reservelijst');
+      toast('\u{23f3} Je staat op de reservelijst');
     } else {
       const position =
         (waitlistRows || []).findIndex(
@@ -938,9 +938,9 @@ async function toggleWaitlist(id) {
         ) + 1;
 
       if (position > 0) {
-        toast(`â³ Je staat op reserveplek ${position}`);
+        toast(`\u{23f3} Je staat op reserveplek ${position}`);
       } else {
-        toast('â³ Je staat op de reservelijst');
+        toast('\u{23f3} Je staat op de reservelijst');
       }
     }
   }
@@ -1007,10 +1007,10 @@ if (isWeekend || isFridayMorning) {
   ];
 
   cancelText =
-    `ð¢ Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
+    `\u{1f7e2} Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
 } else {
   cancelText =
-    'ð¢ Kosteloos afmelden tot 16:00 op de trainingsdag';
+    '\u{1f7e2} Kosteloos afmelden tot 16:00 op de trainingsdag';
 }
 
               return `
@@ -1021,15 +1021,15 @@ if (isWeekend || isFridayMorning) {
                    <h3>
   ${
     l.lesson_date === new Date().toLocaleDateString('en-CA')
-      ? 'ð¥ VANDAAG'
+      ? '\u{1f525} VANDAAG'
       : esc(fmtDate(l.lesson_date))
   }
-  â¢
+  \u{2022}
   ${esc(String(l.lesson_time).slice(0, 5))}
 </h3>
 
                     <div class="meta">
-                      ð ${esc(l.location)}
+                      \u{1f4cd} ${esc(l.location)}
                     </div>
 
                     <div class="meta">
@@ -1229,7 +1229,7 @@ async function addWeekLessons() {
   ];
 
   if (checkedDays.length === 0) {
-    toast('Kies minimaal Ã©Ã©n trainingsdag');
+    toast('Kies minimaal \u{e9}\u{e9}n trainingsdag');
     return;
   }
 
@@ -1369,7 +1369,7 @@ async function cancelLesson(id) {
 
   const confirmed = confirm(
     `Weet je zeker dat je deze training wilt annuleren?\n\n` +
-    `${fmtDate(lesson.lesson_date)} â¢ ` +
+    `${fmtDate(lesson.lesson_date)} \u{2022} ` +
     `${String(lesson.lesson_time).slice(0, 5)}\n\n` +
     `Aangemelde klanten krijgen hun trainingstegoed terug.`
   );
@@ -1535,9 +1535,9 @@ async function renderAdmin() {
                 <strong>${esc(trial.name)}</strong>
 
                 <div class="meta">
-                  ð ${esc(fmtDate(trial.trial_date))}
-                  Â·
-                  â° ${esc(String(trial.trial_time || '').slice(0, 5))}
+                  \u{1f4c5} ${esc(fmtDate(trial.trial_date))}
+                  \u{b7}
+                  \u{23f0} ${esc(String(trial.trial_time || '').slice(0, 5))}
                 </div>
 
               </div>
@@ -1775,19 +1775,19 @@ async function renderAdmin() {
 
                 <h3>
                   ${esc(fmtDate(l.lesson_date))}
-                  â¢
+                  \u{2022}
                   ${esc(String(l.lesson_time).slice(0, 5))}
                 </h3>
 
                 <div class="meta">
 
-                  ð ${esc(l.location)}
+                  \u{1f4cd} ${esc(l.location)}
 
-                  Â·
+                  \u{b7}
 
                   ${bs.length + trialCount}/${l.max_participants} deelnemers
 
-                  Â· ${ws.length} reserve
+                  \u{b7} ${ws.length} reserve
 
                   ${
                     attendees.length
@@ -1796,7 +1796,7 @@ async function renderAdmin() {
                           <strong>Aangemeld:</strong>
                           <br>
                           ${attendees
-                            .map(name => `â¢ ${esc(name)}`)
+                            .map(name => `\u{2022} ${esc(name)}`)
                             .join('<br>')}
                         </div>
                       `
@@ -2201,7 +2201,7 @@ if (togglePasswordBtn && passwordInput) {
     passwordInput.type = isHidden ? 'text' : 'password';
 
     // Verborgen = aapje, zichtbaar = oogje
-    togglePasswordBtn.textContent = isHidden ? 'ðï¸' : 'ð';
+    togglePasswordBtn.textContent = isHidden ? '\u{1f441}\u{fe0f}' : '\u{1f648}';
     togglePasswordBtn.setAttribute(
       'aria-label',
       isHidden ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'
@@ -2224,8 +2224,8 @@ if (accountHelpBtn && accountHelp) {
 
     accountHelpBtn.textContent =
       accountHelp.classList.contains('hidden')
-        ? 'ð Bekijk uitleg account aanmaken'
-        : 'ð Verberg uitleg account aanmaken';
+        ? '\u{1f4d6} Bekijk uitleg account aanmaken'
+        : '\u{1f4d6} Verberg uitleg account aanmaken';
   };
 }
 
@@ -2626,7 +2626,7 @@ async function enableNotifications() {
       throw error;
     }
 
-    toast('Meldingen staan aan â');
+    toast('Meldingen staan aan \u{2705}');
 
   } catch (error) {
     console.error(
