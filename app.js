@@ -653,13 +653,13 @@ if (!displayLessons.length) {
 
               <h3>
                 ${esc(fmtDate(l.lesson_date))}
-                \u{2022}
+                -
                 ${esc(String(l.lesson_time).slice(0, 5))}
               </h3>
 
               <div class="meta">
-                \u{1f4cd} ${esc(l.location)}
-                \u{b7}
+                Locatie ${esc(l.location)}
+                |
                 ${count}/${maxParticipants} deelnemers
               </div>
 
@@ -885,9 +885,9 @@ async function toggleBooking(id) {
   const remainingCredit = Number(profile.rides || 0) - 1;
 
   if (remainingCredit <= 0) {
-    toast(`\u{26a0}\u{fe0f} Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} \u{2022} ${lesson.location}. Dit was je laatste trainingstegoed.`);
+    toast(`\u{26a0}\u{fe0f} Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} - ${lesson.location}. Dit was je laatste trainingstegoed.`);
   } else {
-    toast(`\u{2705} Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} \u{2022} ${lesson.location}`);
+    toast(`\u{2705} Je bent ingeschreven voor ${fmtDate(lesson.lesson_date)} om ${String(lesson.lesson_time).slice(0, 5)} - ${lesson.location}`);
   }
 }
 
@@ -1024,12 +1024,12 @@ if (isWeekend || isFridayMorning) {
       ? '\u{1f525} VANDAAG'
       : esc(fmtDate(l.lesson_date))
   }
-  \u{2022}
+  -
   ${esc(String(l.lesson_time).slice(0, 5))}
 </h3>
 
                     <div class="meta">
-                      \u{1f4cd} ${esc(l.location)}
+                      Locatie ${esc(l.location)}
                     </div>
 
                     <div class="meta">
@@ -1369,7 +1369,7 @@ async function cancelLesson(id) {
 
   const confirmed = confirm(
     `Weet je zeker dat je deze training wilt annuleren?\n\n` +
-    `${fmtDate(lesson.lesson_date)} \u{2022} ` +
+    `${fmtDate(lesson.lesson_date)} - ` +
     `${String(lesson.lesson_time).slice(0, 5)}\n\n` +
     `Aangemelde klanten krijgen hun trainingstegoed terug.`
   );
@@ -1536,7 +1536,7 @@ async function renderAdmin() {
 
                 <div class="meta">
                   \u{1f4c5} ${esc(fmtDate(trial.trial_date))}
-                  \u{b7}
+                  |
                   \u{23f0} ${esc(String(trial.trial_time || '').slice(0, 5))}
                 </div>
 
@@ -1775,19 +1775,19 @@ async function renderAdmin() {
 
                 <h3>
                   ${esc(fmtDate(l.lesson_date))}
-                  \u{2022}
+                  -
                   ${esc(String(l.lesson_time).slice(0, 5))}
                 </h3>
 
                 <div class="meta">
 
-                  \u{1f4cd} ${esc(l.location)}
+                  Locatie ${esc(l.location)}
 
-                  \u{b7}
+                  |
 
                   ${bs.length + trialCount}/${l.max_participants} deelnemers
 
-                  \u{b7} ${ws.length} reserve
+                  | ${ws.length} reserve
 
                   ${
                     attendees.length
@@ -1796,7 +1796,7 @@ async function renderAdmin() {
                           <strong>Aangemeld:</strong>
                           <br>
                           ${attendees
-                            .map(name => `\u{2022} ${esc(name)}`)
+                            .map(name => `- ${esc(name)}`)
                             .join('<br>')}
                         </div>
                       `
