@@ -577,7 +577,7 @@ startOfWeek.setHours(0, 0, 0, 0);
 
 // Zondag van die trainingsweek
 const endOfWeek = new Date(startOfWeek);
-endOfWeek.setDate(startOfWeek.getDate() + 6);
+endOfWeek.setDate(startOfWeek.getDate() + 13);
 endOfWeek.setHours(23, 59, 59, 999);
 
 // Alleen trainingen van die week
@@ -613,7 +613,7 @@ if (!displayLessons.length) {
   box.innerHTML = `
     <div class="card">
 
-      <h2>Bootcamptrainingen deze week</h2>
+      <h2>Bootcamptrainingen deze en volgende week</h2>
 
       ${displayLessons.map(l => {
         const mine = myBookings.some(
