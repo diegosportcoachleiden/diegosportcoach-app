@@ -1757,7 +1757,7 @@ async function renderAdmin() {
             error: waitlistError
           } = await supabaseClient
             .from('waitlist')
-            .select('id')
+            .select('id, user_id')
             .eq('lesson_id', l.id);
 
           if (waitlistError) {
@@ -1765,7 +1765,14 @@ async function renderAdmin() {
           }
 
           const ws = waitlistData || [];
+const waitlistNames = ws.map(waiting => {
+  const member =
+    membersById[String(waiting.user_id)];
 
+  return member
+    ? member.name || member.email
+    : 'Onbekende deelnemer';
+});
           const trialCount = trialAttendees.length;
 
           return `
@@ -1806,6 +1813,23 @@ async function renderAdmin() {
                         </div>
                       `
                   }
+                  ${
+  waitlistNames.length
+    ? `
+      <div class="meta" style="margin-top:10px;">
+        <strong>Reserve:</strong>
+        <br>
+        ${waitlistNames
+          .map((name, index) => `${index + 1}. ${esc(name)}`)
+          .join('<br>')}
+      </div>
+    `
+    : `
+      <div class="meta" style="margin-top:10px;">
+        <strong>Reserve:</strong> niemand
+      </div>
+    `
+}
 ${
   new Date(
     `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
