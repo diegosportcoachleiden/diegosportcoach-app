@@ -36,125 +36,170 @@
 
   <main class="wrap">
 
-    <!-- INLOGGEN -->
+  <!-- INLOGGEN / ACCOUNT AANMAKEN -->
 
-    <section id="loginView" class="card auth">
+<section id="loginView" class="card auth">
 
-     <h1>Welkom bij DiegoSportCoach 👋</h1>
+  <h1 id="authTitle">Welkom terug 👋</h1>
 
-<p>
-  Heb je al een account? Vul hieronder je e-mailadres en wachtwoord in en klik op <strong>Inloggen</strong>.
-</p>
+  <p id="authIntro">
+    Log in met je e-mailadres en wachtwoord.
+  </p>
 
-<label>Voor- en achternaam</label>
+  <div class="auth-switch">
+    <button
+      id="showLoginBtn"
+      class="auth-switch-btn active"
+      type="button"
+    >
+      Inloggen
+    </button>
 
-<input
-  id="nameInput"
-  type="text"
-  placeholder="Alleen nodig bij een nieuw account"
->
+    <button
+      id="showSignupBtn"
+      class="auth-switch-btn"
+      type="button"
+    >
+      Account aanmaken
+    </button>
+  </div>
 
-<label>E-mailadres</label>
 
-<input
-  id="emailInput"
-  type="email"
-  placeholder="naam@email.nl"
->
+  <!-- ALLEEN TONEN BIJ ACCOUNT AANMAKEN -->
 
-<label>Wachtwoord</label>
+  <div id="nameFieldGroup" class="hidden">
 
-<div class="password-wrap">
+    <label>Voor- en achternaam</label>
+
+    <input
+      id="nameInput"
+      type="text"
+      placeholder="Bijv. Sanne de Vries"
+      autocomplete="name"
+    >
+
+  </div>
+
+
+  <label>E-mailadres</label>
+
   <input
-    id="passwordInput"
-    type="password"
-    placeholder="Minimaal 6 tekens"
+    id="emailInput"
+    type="email"
+    placeholder="naam@email.nl"
+    autocomplete="email"
   >
-  <button
-    type="button"
-    id="togglePassword"
-    class="password-eye"
-    aria-label="Wachtwoord verborgen"
-  >🙈</button>
-</div>
 
-<button
-  id="loginBtn"
-  class="primary"
-  type="button"
->
-  Inloggen
-</button>
 
-<button
-  id="forgotPasswordBtn"
-  class="secondary"
-  type="button"
->
-  Wachtwoord vergeten?
-</button>
+  <label>Wachtwoord</label>
 
-<hr style="margin:24px 0;">
+  <div class="password-wrap">
 
-<h2>Nieuw bij DiegoSportCoach?</h2>
+    <input
+      id="passwordInput"
+      type="password"
+      placeholder="Minimaal 6 tekens"
+      autocomplete="current-password"
+    >
 
-<p>
-  Maak hieronder eenvoudig je account aan. Lees je dit voor de eerste keer? Bekijk dan eerst de korte uitleg.
-</p>
+    <button
+      type="button"
+      id="togglePassword"
+      class="password-eye"
+      aria-label="Wachtwoord tonen"
+    >
+      🙈
+    </button>
 
-<button
-  id="accountHelpBtn"
-  class="secondary"
-  type="button"
->
-  📖 Bekijk uitleg account aanmaken
-</button>
+  </div>
 
-<div id="accountHelp" class="hidden" style="margin-top:12px;">
 
-  <strong>Account aanmaken – stap voor stap</strong>
+  <!-- INLOGGEN -->
 
-  <p>
-    <strong>1.</strong> Vul hierboven je naam, e-mailadres en een wachtwoord van minimaal 6 tekens in.
-  </p>
+  <div id="loginActions">
 
-  <p>
-    <strong>2.</strong> Klik daarna op <strong>Account aanmaken</strong>.
-  </p>
+    <button
+      id="loginBtn"
+      class="primary"
+      type="button"
+    >
+      Inloggen
+    </button>
 
-  <p>
-    <strong>3.</strong> Je ontvangt een bevestigingsmail. Kijk ook bij je
-    <strong>ongewenste mail/spam</strong> als je de e-mail niet ziet.
-  </p>
+    <button
+      id="forgotPasswordBtn"
+      class="auth-text-button"
+      type="button"
+    >
+      Wachtwoord vergeten?
+    </button>
 
-  <p>
-    <strong>4.</strong> Open de bevestigingsmail en klik op de link om je account te bevestigen.
-  </p>
+  </div>
 
-  <p>
-    <strong>5.</strong> Ga daarna terug naar de DiegoSportCoach-app en log in met je e-mailadres en wachtwoord.
-  </p>
 
-  <p>
-    ✅ <strong>Klaar! Je kunt de app nu gebruiken.</strong>
-  </p>
+  <!-- ACCOUNT AANMAKEN -->
 
-</div>
+  <div id="signupActions" class="hidden">
 
-<button
-  id="signUpBtn"
-  class="secondary"
-  type="button"
->
-  Account aanmaken
-</button> 
-      
-      <p
-        id="authMsg"
-        class="success hidden"
-      ></p>
+    <button
+      id="signUpBtn"
+      class="secondary"
+      type="button"
+    >
+      Account aanmaken
+    </button>
 
-    </section>
+    <button
+      id="accountHelpBtn"
+      class="auth-text-button"
+      type="button"
+    >
+      Eerste keer? Lees hoe je een account aanmaakt
+    </button>
+
+
+    <div
+      id="accountHelp"
+      class="account-help hidden"
+    >
+
+      <strong>
+        Account aanmaken — stap voor stap
+      </strong>
+
+      <ol>
+        <li>
+          Vul je naam, e-mailadres en een wachtwoord van minimaal 6 tekens in.
+        </li>
+
+        <li>
+          Klik op Account aanmaken.
+        </li>
+
+        <li>
+          Je krijgt een bevestigingsmail. Kijk ook bij je spam.
+        </li>
+
+        <li>
+          Open de mail en klik op de bevestigingslink.
+        </li>
+
+        <li>
+          Kom terug en log in met je e-mailadres en wachtwoord.
+        </li>
+      </ol>
+
+    </div>
+
+  </div>
+
+
+  <p
+    id="authMsg"
+    class="success hidden"
+  ></p>
+
+</section>
 <!-- NIEUW WACHTWOORD INSTELLEN -->
 <section id="resetPasswordView" class="card auth hidden">
 
@@ -663,75 +708,125 @@
     
     </section>
 
-    <!-- HANDLEIDING -->
+   <!-- HANDLEIDING -->
 
 </main>
-  
-  <div
-    id="toast"
-    class="toast hidden"
-  ></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div
+  id="toast"
+  class="toast hidden"
+></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js?v=102"></script>
 
 <script>
-  const accountHelpBtn = document.getElementById("accountHelpBtn");
-  const accountHelp = document.getElementById("accountHelp");
+(() => {
 
-  if (accountHelpBtn && accountHelp) {
-    accountHelpBtn.addEventListener("click", () => {
-      accountHelp.classList.toggle("hidden");
+  const showLoginBtn =
+    document.getElementById('showLoginBtn');
 
-      if (accountHelp.classList.contains("hidden")) {
-        accountHelpBtn.textContent = "📖 Eerste keer? Zo maak je een account aan";
-      } else {
-        accountHelpBtn.textContent = "✖ Uitleg sluiten";
-      }
-    });
+  const showSignupBtn =
+    document.getElementById('showSignupBtn');
+
+  const authTitle =
+    document.getElementById('authTitle');
+
+  const authIntro =
+    document.getElementById('authIntro');
+
+  const nameFieldGroup =
+    document.getElementById('nameFieldGroup');
+
+  const loginActions =
+    document.getElementById('loginActions');
+
+  const signupActions =
+    document.getElementById('signupActions');
+
+  const accountHelpBox =
+    document.getElementById('accountHelp');
+
+  const passwordInputAuth =
+    document.getElementById('passwordInput');
+
+
+  function showLoginForm() {
+
+    if (authTitle) {
+      authTitle.textContent = 'Welkom terug 👋';
+    }
+
+    if (authIntro) {
+      authIntro.textContent =
+        'Log in met je e-mailadres en wachtwoord.';
+    }
+
+    nameFieldGroup?.classList.add('hidden');
+
+    signupActions?.classList.add('hidden');
+
+    loginActions?.classList.remove('hidden');
+
+    showLoginBtn?.classList.add('active');
+
+    showSignupBtn?.classList.remove('active');
+
+    if (accountHelpBox) {
+      accountHelpBox.classList.add('hidden');
+    }
+
+    if (passwordInputAuth) {
+      passwordInputAuth.autocomplete =
+        'current-password';
+    }
   }
 
-  const togglePassword = document.getElementById("togglePassword");
-  const passwordInput = document.getElementById("passwordInput");
 
-  if (togglePassword && passwordInput) {
-    togglePassword.addEventListener("click", () => {
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        togglePassword.textContent = "👁️";
-      } else {
-        passwordInput.type = "password";
-        togglePassword.textContent = "🙈";
-      }
-    });
+  function showSignupForm() {
+
+    if (authTitle) {
+      authTitle.textContent =
+        'Account aanmaken';
+    }
+
+    if (authIntro) {
+      authIntro.textContent =
+        'Maak hieronder je account aan. Je krijgt een bevestigingsmail.';
+    }
+
+    nameFieldGroup?.classList.remove('hidden');
+
+    loginActions?.classList.add('hidden');
+
+    signupActions?.classList.remove('hidden');
+
+    showSignupBtn?.classList.add('active');
+
+    showLoginBtn?.classList.remove('active');
+
+    if (passwordInputAuth) {
+      passwordInputAuth.autocomplete =
+        'new-password';
+    }
   }
 
-  const nameInput = document.getElementById("nameInput");
-const emailInput = document.getElementById("emailInput");
-const signUpBtn = document.getElementById("signUpBtn");
 
-function checkAccountForm() {
-  const fullName = nameInput.value.trim();
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
+  showLoginBtn?.addEventListener(
+    'click',
+    showLoginForm
+  );
 
-  const hasFirstAndLastName = fullName.split(/\s+/).length >= 2;
-  const validEmail = email.includes("@") && email.includes(".");
-  const validPassword = password.length >= 6;
+  showSignupBtn?.addEventListener(
+    'click',
+    showSignupForm
+  );
 
-  if (hasFirstAndLastName && validEmail && validPassword) {
-    signUpBtn.classList.add("signup-ready");
-  } else {
-    signUpBtn.classList.remove("signup-ready");
-  }
-}
 
-nameInput.addEventListener("input", checkAccountForm);
-emailInput.addEventListener("input", checkAccountForm);
-passwordInput.addEventListener("input", checkAccountForm);
+  showLoginForm();
 
-checkAccountForm();
+})();
 </script>
-   
+
 </body>
 </html>
