@@ -320,3 +320,174 @@ textarea {
     padding: 11px 5px;
   }
 }
+
+
+/* =========================================
+   DIEGOSPORTCOACH - LESSENOVERZICHT NIEUW
+   ========================================= */
+
+/* TABBLADEN */
+
+#appView .tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  overflow: visible;
+  margin-bottom: 14px;
+}
+
+#appView .tab {
+  padding: 12px 5px;
+  border-radius: 11px;
+  font-size: 12px;
+  white-space: normal;
+  text-align: center;
+}
+
+#appView .tab.active {
+  background: #111;
+  color: #fff;
+}
+
+/* MEDEDELINGEN */
+
+#announcementBox {
+  background: #fff3e6;
+  border: 1px solid #f4d5b5;
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 17px;
+  margin-bottom: 14px;
+}
+
+#announcementBox .eyebrow {
+  color: #a84c08;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+#announcementTitle {
+  color: #7b3a07;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+#announcementMessage {
+  color: #805a37;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+/* TWEE APARTE TRAININGSWEKEN */
+
+#lessen .week-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 17px;
+  margin-bottom: 14px;
+  box-shadow: none;
+}
+
+#lessen .week-heading {
+  margin-bottom: 12px;
+}
+
+#lessen .week-heading h2 {
+  font-size: 19px;
+  margin: 0 0 4px;
+  color: #111;
+}
+
+#lessen .week-subtitle {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+}
+
+#lessen .lesson {
+  padding: 15px 0;
+  gap: 9px;
+}
+
+#lessen .lesson h3 {
+  font-size: 14px;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+
+#lessen .lesson .meta {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#lessen .lesson > button {
+  min-width: 94px;
+  padding: 11px 8px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+#lessen .badge {
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+/* HOE WERKT DE APP? */
+
+#handleiding {
+  padding: 15px 17px;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+#handleiding > details > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111;
+  padding: 2px 0;
+}
+
+#handleiding .help-content {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f6f6f3;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #444;
+}
+
+#handleiding .help-content p {
+  font-size: 12px;
+  margin-bottom: 9px;
+}
+
+#handleiding .help-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* MOBIEL */
+
+@media (max-width: 700px) {
+  #lessen .week-card {
+    padding: 15px 13px;
+  }
+
+  #lessen .lesson h3 {
+    font-size: 13px;
+  }
+
+  #lessen .lesson > button {
+    min-width: 85px;
+    font-size: 11px;
+  }
+
+  #appView .tab {
+    font-size: 11px;
+    padding: 12px 3px;
+  }
+}
+
