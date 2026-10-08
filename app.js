@@ -1033,10 +1033,9 @@ function renderMine() {
   if (!box) return;
 
   const mine = lessons.filter(
-    l =>
-      myBookings.some(
-        id => String(id) === String(l.id)
-      )
+    l => myBookings.some(
+      id => String(id) === String(l.id)
+    )
   );
 
   box.innerHTML = `
@@ -1052,75 +1051,128 @@ function renderMine() {
               );
 
               const day = lessonStart.getDay();
-
-              const isWeekend =
-                day === 0 || day === 6;
-
-              const isFridayMorning =
-                day === 5 &&
-                lessonStart.getHours() === 9;
+              const isWeekend = day === 0 || day === 6;
+              const isFriday = day === 5;
+              const lessonStarted = lessonStart <= new Date();
 
               let cancelText = '';
 
-if (isWeekend || isFridayMorning) {
-  const deadline = new Date(lessonStart);
+              if (isWeekend || isFriday) {
+                const deadline = new Date(lessonStart);
+                deadline.setDate(deadline.getDate() - 1);
 
-  deadline.setDate(deadline.getDate() - 1);
+                const dayNames = [
+                  'zondag', 'maandag', 'dinsdag',
+                  'woensdag', 'donderdag',
+                  'vrijdag', 'zaterdag'
+                ];
 
-  const dayNames = [
-    'zondag',
-    'maandag',
-    'dinsdag',
-    'woensdag',
-    'donderdag',
-    'vrijdag',
-    'zaterdag'
-  ];
-
-  cancelText =
-    `\u{1f7e2} Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
-} else {
-  cancelText =
-    '\u{1f7e2} Kosteloos afmelden tot 16:00 op de trainingsdag';
-}
+                cancelText =
+                  `🟢 Kosteloos afmelden tot ${dayNames[deadline.getDay()]} 21:00`;
+              } else {
+                cancelText =
+                  '🟢 Kosteloos afmelden tot 16:00 op de trainingsdag';
+              }
 
               return `
                 <div class="lesson">
 
                   <div>
-
-                   <h3>
-  ${
-    l.lesson_date === new Date().toLocaleDateString('en-CA')
-      ? '\u{1f525} VANDAAG'
-      : esc(fmtDate(l.lesson_date))
-  }
-  -
-  ${esc(String(l.lesson_time).slice(0, 5))}
-</h3>
+                    <h3>
+                      ${
+                        l.lesson_date === new Date().toLocaleDateString('en-CA')
+                          ? '🔥 VANDAAG'
+                          : esc(fmtDate(l.lesson_date))
+                      }
+                      · ${esc(String(l.lesson_time).slice(0, 5))}
+                    </h3>
 
                     <div class="meta">
-                      Locatie ${esc(l.location)}
+                      📍 ${esc(l.location)}
                     </div>
 
                     <div class="meta">
                       ${cancelText}
                     </div>
 
+                    <span class="badge mine">
+                      Ingeschreven
+                    </span>
                   </div>
 
-                  <span class="badge mine">
-                    Ingeschreven
-                  </span>
+                  <button
+                    class="dsc-book-btn dsc-cancel"
+                    data-mine-cancel="${esc(String(l.id))}"
+                    type="button"
+                    ${lessonStarted ? 'disabled' : ''}
+                  >
+                    ${lessonStarted ? 'Gesloten' : 'Afmelden'}
+                  </button>
 
                 </div>
               `;
             }).join('')
-          : `<p>Je bent nog niet ingeschreven voor een training.</p>`
+
+          : `
+            <div style="text-align:center;padding:22px 10px;">
+
+              <div style="font-size:30px;margin-bottom:12px;">
+                🗓️
+              </div>
+
+              <p>
+                Je bent nog niet ingeschreven voor een training.
+              </p>
+
+              <button
+                id="mineViewLessonsBtn"
+                class="primary"
+                type="button"
+                style="margin-top:12px;"
+              >
+                Bekijk de lessen
+              </button>
+
+            </div>
+          `
       }
 
     </div>
   `;
+
+  // Naar het lessenoverzicht
+  const viewLessonsBtn = box.querySelector(
+    '#mineViewLessonsBtn'
+  );
+
+  if (viewLessonsBtn) {
+    viewLessonsBtn.onclick = () => {
+      const lessonsTab = Array.from(
+        document.querySelectorAll('#appView .tab')
+      ).find(
+        tab => tab.textContent.trim().toLowerCase().includes('lessen')
+      );
+
+      if (lessonsTab) {
+        lessonsTab.click();
+      }
+    };
+  }
+
+  // Afmelden via de bestaande boekingsfunctie
+  box.querySelectorAll('[data-mine-cancel]').forEach(button => {
+    button.onclick = async () => {
+      const id = button.dataset.mineCancel;
+
+      button.disabled = true;
+
+      try {
+        await toggleBooking(id);
+      } finally {
+        button.disabled = false;
+      }
+    };
+  });
 }
 
 
