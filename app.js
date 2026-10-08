@@ -610,110 +610,176 @@ if (!displayLessons.length) {
   return;
 }
 
-  box.innerHTML = `
-    <div class="card">
+   // Bepaal het begin van deze week (maandag)
+  const dscWeekStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
 
-      <h2>Bootcamptrainingen deze en volgende week</h2>
+  dscWeekStart.setDate(
+    dscWeekStart.getDate() -
+    ((dscWeekStart.getDay() + 6) % 7)
+  );
 
-      ${displayLessons.map(l => {
-        const mine = myBookings.some(
-          id => String(id) === String(l.id)
-        );
+  const dscNextWeek = new Date(dscWeekStart);
+  dscNextWeek.setDate(dscNextWeek.getDate() + 7);
 
-        const waiting = myWaitlist.some(
-          id => String(id) === String(l.id)
-        );
+  const dscWeekAfter = new Date(dscWeekStart);
+  dscWeekAfter.setDate(dscWeekAfter.getDate() + 14);
 
-        const trialsForLesson = trialLessons.filter(
-          trial =>
-            trial.trial_date === l.lesson_date &&
-            String(trial.trial_time || '').slice(0, 5) ===
+  // Verdeel de bestaande trainingen over de weken
+  const dscLessonGroups = [
+    {
+      title: 'DEZE WEEK',
+      lessons: displayLessons.filter(l => {
+        const date = new Date(`${l.lesson_date}T12:00:00`);
+        return date >= dscWeekStart && date < dscNextWeek;
+      })
+    },
+    {
+      title: 'VOLGENDE WEEK',
+      lessons: displayLessons.filter(l => {
+        const date = new Date(`${l.lesson_date}T12:00:00`);
+        return date >= dscNextWeek && date < dscWeekAfter;
+      })
+    },
+    {
+      title: 'OVERIGE TRAININGEN',
+      lessons: displayLessons.filter(l => {
+        const date = new Date(`${l.lesson_date}T12:00:00`);
+        return date < dscWeekStart || date >= dscWeekAfter;
+      })
+    }
+  ];
+
+  box.innerHTML = dscLessonGroups
+    .filter(group => group.lessons.length > 0)
+    .map(group => `
+      <div class="card">
+
+        ${
+          group.title === 'DEZE WEEK'
+            ? '<h2>Bootcamptrainingen</h2>'
+            : ''
+        }
+
+        <p style="
+          font-size:11px;
+          font-weight:800;
+          letter-spacing:1px;
+          color:#888;
+          margin-bottom:10px;
+        ">
+          ${group.title}
+        </p>
+
+        ${group.lessons.map(l => {
+
+          const mine = myBookings.some(
+            id => String(id) === String(l.id)
+          );
+
+          const waiting = myWaitlist.some(
+            id => String(id) === String(l.id)
+          );
+
+          const trialsForLesson = trialLessons.filter(
+            trial =>
+              trial.trial_date === l.lesson_date &&
+              String(trial.trial_time || '').slice(0, 5) ===
               String(l.lesson_time || '').slice(0, 5)
-        );
+          );
 
-        const normalCount = Number(l.booking_count || 0);
-        const trialCount = trialsForLesson.length;
-        const count = normalCount + trialCount;
+          const normalCount = Number(l.booking_count || 0);
+          const trialCount = trialsForLesson.length;
+          const count = normalCount + trialCount;
 
-        const maxParticipants =
-          Number(l.max_participants || 0);
+          const maxParticipants =
+            Number(l.max_participants || 0);
 
-        const full =
-          count >= maxParticipants;
+          const full = count >= maxParticipants;
 
-        const lessonStarted =
-          new Date(
-            `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
-          ) <= now;
+          const lessonStarted =
+            new Date(
+              `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+            ) <= now;
 
-        return `
-          <div class="lesson">
+          const availablePlaces =
+            Math.max(0, maxParticipants - count);
 
-            <div>
+          return `
+            <div class="lesson">
 
-              <h3>
-                ${esc(fmtDate(l.lesson_date))}
-                -
-                ${esc(String(l.lesson_time).slice(0, 5))}
-              </h3>
+              <div>
 
-              <div class="meta">
-                Locatie ${esc(l.location)}
-                |
-                ${count}/${maxParticipants} deelnemers
+                <h3>
+                  ${esc(fmtDate(l.lesson_date))}
+                  ·
+                  ${esc(String(l.lesson_time).slice(0, 5))}
+                </h3>
+
+                <div class="meta">
+                  📍 ${esc(l.location)}
+                </div>
+
+                ${
+                  !lessonStarted
+                    ? `
+                      <span class="badge ${
+                        mine
+                          ? 'mine'
+                          : waiting || full
+                          ? 'full'
+                          : ''
+                      }">
+                        ${
+                          mine
+                            ? 'Ingeschreven'
+                            : waiting
+                            ? 'Op reservelijst'
+                            : full
+                            ? 'Vol — zet je op de reservelijst'
+                            : `Nog ${availablePlaces} plekken`
+                        }
+                      </span>
+                    `
+                    : ''
+                }
+
               </div>
 
-              <span class="badge ${
-                mine
-                  ? 'mine'
-                  : full
-                  ? 'full'
-                  : ''
-              }">
+              <button
+                class="${
+                  lessonStarted || mine
+                    ? 'secondary'
+                    : 'primary'
+                }"
+                data-book="${l.id}"
+                type="button"
+                ${lessonStarted ? 'disabled' : ''}
+              >
                 ${
-                  mine
-                    ? 'Ingeschreven'
+                  lessonStarted
+                    ? 'Gesloten'
+                    : mine
+                    ? 'Afmelden'
                     : waiting
-                    ? 'Op reservelijst'
+                    ? 'Van reservelijst'
                     : full
-                    ? 'Vol'
-                    : 'Plek beschikbaar'
+                    ? 'Reservelijst'
+                    : 'Inschrijven'
                 }
-              </span>
+              </button>
 
             </div>
+          `;
 
-            <button
-              class="${
-                lessonStarted
-                  ? 'secondary'
-                  : mine
-                  ? 'secondary'
-                  : 'primary'
-              }"
-              data-book="${l.id}"
-              type="button"
-              ${lessonStarted ? 'disabled' : ''}
-            >
-              ${
-                lessonStarted
-                  ? 'Gesloten'
-                  : mine
-                  ? 'Uitschrijven'
-                  : waiting
-                  ? 'Van reservelijst'
-                  : full
-                  ? 'Reserveplek'
-                  : 'Inschrijven'
-              }
-            </button>
+        }).join('')}
 
-          </div>
-        `;
-      }).join('')}
+      </div>
+    `).join('');
 
-    </div>
-  `;
 
   $$('[data-book]').forEach(button => {
     button.onclick = async () => {
