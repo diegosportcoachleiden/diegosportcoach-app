@@ -491,3 +491,39 @@ textarea {
   }
 }
 
+/* TRAININGSKNOPPEN */
+
+.lesson .dsc-book-btn {
+  min-width: 110px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  font-weight: 800;
+}
+
+/* Inschrijven - oranje */
+.lesson .dsc-signup {
+  background: #ff6a00;
+  color: white;
+}
+
+/* Reservelijst - oranje rand */
+.lesson .dsc-reserve {
+  background: white;
+  color: #ff6a00;
+  border: 2px solid #ff6a00;
+}
+
+/* Afmelden - lichtgrijs */
+.lesson .dsc-cancel {
+  background: #ecece8;
+  color: #444;
+}
+
+/* Gesloten - donkergrijs */
+.lesson .dsc-closed {
+  background: #888;
+  color: white;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
