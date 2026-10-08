@@ -750,11 +750,16 @@ if (!displayLessons.length) {
               </div>
 
               <button
-                class="${
-                  lessonStarted || mine
-                    ? 'secondary'
-                    : 'primary'
-                }"
+               class="dsc-book-btn ${
+  lessonStarted
+    ? 'dsc-closed'
+    : mine
+    ? 'dsc-cancel'
+    : waiting || full
+    ? 'dsc-reserve'
+    : 'dsc-signup'
+}"
+
                 data-book="${l.id}"
                 type="button"
                 ${lessonStarted ? 'disabled' : ''}
