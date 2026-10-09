@@ -748,6 +748,35 @@ if (!displayLessons.length) {
                 }
 
               </div>
+<button
+  type="button"
+  data-attendees="${esc(String(l.id))}"
+  style="
+    display:block;
+    margin-top:12px;
+    border:0;
+    background:none;
+    color:#d96b00;
+    font-weight:700;
+    cursor:pointer;
+    padding:4px 0;
+    text-align:left;
+  "
+>
+  👥 Bekijk deelnemers (${normalCount})
+</button>
+
+<div
+  data-attendees-list="${esc(String(l.id))}"
+  class="hidden"
+  style="
+    margin-top:8px;
+    padding:12px;
+    background:#f5f5f5;
+    border-radius:10px;
+    font-size:14px;
+  "
+></div>
 
               <button
                class="dsc-book-btn ${
@@ -785,6 +814,55 @@ if (!displayLessons.length) {
       </div>
     `).join('');
 
+
+$$('[data-attendees]').forEach(button => {
+  button.onclick = async () => {
+    const id = button.dataset.attendees;
+
+    const listBox = $$('[data-attendees-list]')
+      .find(el => el.dataset.attendeesList === id);
+
+    if (!listBox) return;
+
+    if (!listBox.classList.contains('hidden')) {
+      listBox.classList.add('hidden');
+      button.textContent = '👥 Bekijk deelnemers';
+      return;
+    }
+
+    button.disabled = true;
+    listBox.classList.remove('hidden');
+    listBox.textContent = 'Deelnemers laden...';
+
+    try {
+      const { data, error } = await supabaseClient.rpc(
+        'get_lesson_attendee_names',
+        { p_lesson_id: String(id) }
+      );
+
+      if (error) throw error;
+
+      const names = (data || []).map(
+        row => row.participant_name
+      );
+
+      listBox.innerHTML = names.length
+        ? names.map(name =>
+            `<div style="padding:4px 0;">👤 ${esc(name)}</div>`
+          ).join('')
+        : 'Nog geen deelnemers ingeschreven.';
+
+      button.textContent = '👥 Verberg deelnemers';
+
+    } catch (error) {
+      console.error(error);
+      listBox.textContent =
+        'Deelnemers ophalen mislukt.';
+    } finally {
+      button.disabled = false;
+    }
+  };
+});
 
   $$('[data-book]').forEach(button => {
     button.onclick = async () => {
