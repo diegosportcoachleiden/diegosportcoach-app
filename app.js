@@ -2899,3 +2899,552 @@ async function startApp() {
 }
 
 startApp();
+
+/* ========================================================
+   DIEGOSPORTCOACH - AANWEZIGHEID IN BEHEER
+
+   Plak dit ONDERAAN het bestaande app.js bestand.
+
+   Bestaande inschrijvingen en trainingstegoeden
+   blijven intact.
+
+   Trainingen vanaf 5 oktober 2026.
+======================================================== */
+
+const dscAttendanceStartDate = '2026-10-05';
+const dscAttendanceDrafts = new Map();
+const dscOriginalRenderAdmin = renderAdmin;
+
+
+// Voeg bij afgelopen trainingen een aanwezigheidsknop toe.
+
+renderAdmin = async function (...args) {
+  await dscOriginalRenderAdmin.apply(this, args);
+
+  if (!isAdmin || !session?.user) return;
+
+  const cards = [
+    ...document.querySelectorAll('#adminLessons > .lesson')
+  ];
+
+  if (!cards.length) return;
+
+  let closedIds = new Set();
+
+  const {
+    data: closedLessons,
+    error: closedError
+  } = await supabaseClient
+    .from('dsc_closed_lessons')
+    .select('lesson_id')
+    .gte('lesson_date', dscAttendanceStartDate);
+
+  if (closedError) {
+    console.error(
+      'Aanwezigheidsstatus ophalen:',
+      closedError
+    );
+  } else {
+    closedIds = new Set(
+      (closedLessons || []).map(
+        x => String(x.lesson_id)
+      )
+    );
+  }
+
+  cards.forEach((card, index) => {
+    const lesson = lessons[index];
+
+    if (
+      !lesson ||
+      lesson.lesson_date < dscAttendanceStartDate
+    ) {
+      return;
+    }
+
+    const start = new Date(
+      `${lesson.lesson_date}T${String(
+        lesson.lesson_time
+      ).slice(0, 5)}:00`
+    );
+
+    if (start > new Date()) return;
+
+    const area = document.createElement('div');
+    area.style.marginTop = '12px';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'secondary';
+
+    button.dataset.dscAttendanceOpen =
+      String(lesson.id);
+
+    button.textContent =
+      closedIds.has(String(lesson.id))
+        ? '📋 Aanwezigheid corrigeren'
+        : '📋 Training afsluiten / aanwezigheid';
+
+    const panel = document.createElement('div');
+
+    panel.className = 'hidden';
+
+    panel.dataset.dscAttendancePanel =
+      String(lesson.id);
+
+    panel.style.marginTop = '12px';
+
+    area.append(button, panel);
+    card.appendChild(area);
+  });
+};
+
+
+// Haal alle ingeschreven deelnemers op.
+
+async function dscGetAttendanceParticipants(lesson) {
+  const {
+    data: bookings,
+    error: bookingsError
+  } = await supabaseClient
+    .from('bookings')
+    .select('user_id')
+    .eq('lesson_id', lesson.id);
+
+  if (bookingsError) throw bookingsError;
+
+  const ids = [
+    ...new Set(
+      (bookings || [])
+        .map(b => b.user_id)
+        .filter(Boolean)
+    )
+  ];
+
+  let members = [];
+
+  if (ids.length) {
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('id,name,email')
+      .in('id', ids);
+
+    if (error) throw error;
+
+    members = data || [];
+  }
+
+  const membersById = new Map(
+    members.map(m => [
+      String(m.id),
+      m
+    ])
+  );
+
+  const participants = ids.map(id => {
+    const member = membersById.get(String(id));
+
+    return {
+      id: null,
+      key: `user:${id}`,
+      userId: id,
+      name:
+        member?.name ||
+        member?.email ||
+        'Onbekende deelnemer',
+      present: true
+    };
+  });
+
+
+  // Ook proeflesdeelnemers meenemen.
+
+  const {
+    data: trials,
+    error: trialError
+  } = await supabaseClient
+    .from('trial_lessons')
+    .select('id,name,trial_time')
+    .eq('trial_date', lesson.lesson_date);
+
+  if (trialError) throw trialError;
+
+  for (const trial of trials || []) {
+    if (
+      String(trial.trial_time || '').slice(0, 5) !==
+      String(lesson.lesson_time || '').slice(0, 5)
+    ) {
+      continue;
+    }
+
+    participants.push({
+      id: null,
+      key: `trial:${trial.id}`,
+      userId: null,
+      name: trial.name || 'Proeflesdeelnemer',
+      present: true
+    });
+  }
+
+  return participants.sort(
+    (a, b) => a.name.localeCompare(b.name, 'nl')
+  );
+}
+
+
+// Open de aanwezigheidslijst.
+
+async function dscOpenAttendance(lessonId, panel) {
+  const lesson = lessons.find(
+    l => String(l.id) === String(lessonId)
+  );
+
+  if (!lesson) {
+    throw new Error('Training niet gevonden.');
+  }
+
+  const {
+    data: closedRows,
+    error: closedError
+  } = await supabaseClient
+    .from('dsc_closed_lessons')
+    .select('id')
+    .eq('lesson_id', String(lessonId))
+    .limit(1);
+
+  if (closedError) throw closedError;
+
+  const closedId = closedRows?.[0]?.id || null;
+
+  let participants;
+
+  if (closedId) {
+    const { data, error } = await supabaseClient
+      .from('dsc_attendance_entries')
+      .select(
+        'id,participant_key,participant_user_id,participant_name,present'
+      )
+      .eq('closed_lesson_id', closedId)
+      .order('participant_name');
+
+    if (error) throw error;
+
+    participants = (data || []).map(row => ({
+      id: row.id,
+      key: row.participant_key,
+      userId: row.participant_user_id,
+      name: row.participant_name,
+      present: row.present === true
+    }));
+
+  } else {
+    participants =
+      await dscGetAttendanceParticipants(lesson);
+  }
+
+  dscAttendanceDrafts.set(String(lessonId), {
+    closedId,
+    participants
+  });
+
+  panel.innerHTML = '';
+
+  const heading = document.createElement('p');
+
+  heading.textContent = closedId
+    ? 'Pas de aanwezigheid aan. Vink afwezige deelnemers uit.'
+    : 'Iedereen staat standaard op aanwezig. Vink afwezige deelnemers uit en sla de training op.';
+
+  panel.appendChild(heading);
+
+
+  // Maak een vinkje per deelnemer.
+
+  for (const participant of participants) {
+    const label = document.createElement('label');
+
+    label.style.display = 'block';
+    label.style.padding = '7px 0';
+
+    const checkbox = document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    checkbox.checked = participant.present;
+
+    checkbox.dataset.dscAttendanceKey =
+      participant.key;
+
+    label.append(
+      checkbox,
+      document.createTextNode(
+        ` ${participant.name}`
+      )
+    );
+
+    panel.appendChild(label);
+  }
+
+  if (!participants.length) {
+    const empty = document.createElement('p');
+
+    empty.textContent =
+      'Geen ingeschreven deelnemers gevonden. Controleer dit voordat je afsluit.';
+
+    panel.appendChild(empty);
+  }
+
+
+  // Opslaan-knop.
+
+  const save = document.createElement('button');
+
+  save.type = 'button';
+  save.className = 'primary';
+
+  save.dataset.dscAttendanceSave =
+    String(lessonId);
+
+  save.textContent = closedId
+    ? 'Wijzigingen opslaan'
+    : 'Training afsluiten en opslaan';
+
+  panel.appendChild(save);
+}
+
+
+// Sla aanwezigheid op in Supabase.
+
+async function dscSaveAttendance(lessonId, panel) {
+  if (!isAdmin || !session?.user) {
+    throw new Error('Geen beheerdersrechten.');
+  }
+
+  const draft = dscAttendanceDrafts.get(
+    String(lessonId)
+  );
+
+  const lesson = lessons.find(
+    l => String(l.id) === String(lessonId)
+  );
+
+  if (!draft || !lesson) {
+    throw new Error(
+      'Open de aanwezigheidslijst opnieuw.'
+    );
+  }
+
+  const checks = new Map(
+    [
+      ...panel.querySelectorAll(
+        '[data-dsc-attendance-key]'
+      )
+    ].map(c => [
+      c.dataset.dscAttendanceKey,
+      c.checked
+    ])
+  );
+
+  const participants = draft.participants.map(p => ({
+    ...p,
+    present: checks.get(p.key) === true
+  }));
+
+
+  // Bestaande aanwezigheid corrigeren.
+
+  if (draft.closedId) {
+    for (const participant of participants) {
+      const { error } = await supabaseClient
+        .from('dsc_attendance_entries')
+        .update({
+          present: participant.present
+        })
+        .eq('id', participant.id)
+        .eq(
+          'closed_lesson_id',
+          draft.closedId
+        );
+
+      if (error) throw error;
+    }
+
+    toast('Aanwezigheid bijgewerkt');
+    return;
+  }
+
+
+  // Voorkom dat een training dubbel wordt afgesloten.
+
+  const {
+    data: existing,
+    error: checkError
+  } = await supabaseClient
+    .from('dsc_closed_lessons')
+    .select('id')
+    .eq('lesson_id', String(lessonId))
+    .limit(1);
+
+  if (checkError) throw checkError;
+
+  if (existing?.length) {
+    throw new Error(
+      'Deze training is al afgesloten. Open de lijst opnieuw om te corrigeren.'
+    );
+  }
+
+
+  // Sla de afgesloten training op.
+
+  const closedId = crypto.randomUUID();
+
+  const { error: insertError } =
+    await supabaseClient
+      .from('dsc_closed_lessons')
+      .insert({
+        id: closedId,
+        lesson_id: String(lessonId),
+        lesson_label:
+          `${fmtDate(lesson.lesson_date)} ` +
+          `${String(lesson.lesson_time).slice(0, 5)} - ` +
+          `${lesson.location || ''}`,
+        lesson_date: lesson.lesson_date,
+        closed_by: session.user.id,
+        closed_at: new Date().toISOString()
+      });
+
+  if (insertError) throw insertError;
+
+
+  // Sla alle deelnemers met hun aanwezigheid op.
+
+  const rows = participants.map(p => ({
+    id: crypto.randomUUID(),
+    closed_lesson_id: closedId,
+    participant_key: p.key,
+    participant_user_id: p.userId,
+    participant_name: p.name,
+    present: p.present
+  }));
+
+  if (rows.length) {
+    const { error: entryError } =
+      await supabaseClient
+        .from('dsc_attendance_entries')
+        .insert(rows);
+
+    if (entryError) {
+      const { error: rollbackError } =
+        await supabaseClient
+          .from('dsc_closed_lessons')
+          .delete()
+          .eq('id', closedId);
+
+      if (rollbackError) {
+        console.error(
+          'Terugdraaien mislukt:',
+          rollbackError
+        );
+
+        throw new Error(
+          'Opslaan mislukt. Controleer de database voordat je opnieuw probeert.'
+        );
+      }
+
+      throw entryError;
+    }
+  }
+
+  toast(
+    'Training afgesloten: aanwezigheid opgeslagen'
+  );
+}
+
+
+// Knoppen laten werken.
+
+document.addEventListener('click', async event => {
+  const open = event.target.closest(
+    '[data-dsc-attendance-open]'
+  );
+
+  if (open) {
+    if (!isAdmin) return;
+
+    const id = open.dataset.dscAttendanceOpen;
+
+    const panel = [
+      ...document.querySelectorAll(
+        '[data-dsc-attendance-panel]'
+      )
+    ].find(
+      p => p.dataset.dscAttendancePanel === id
+    );
+
+    if (!panel) return;
+
+    if (!panel.classList.contains('hidden')) {
+      panel.classList.add('hidden');
+      return;
+    }
+
+    open.disabled = true;
+    panel.classList.remove('hidden');
+
+    panel.textContent =
+      'Aanwezigheid laden...';
+
+    try {
+      await dscOpenAttendance(id, panel);
+
+    } catch (error) {
+      console.error(
+        'Aanwezigheid laden:',
+        error
+      );
+
+      panel.textContent =
+        `Ophalen mislukt: ${error.message}`;
+
+    } finally {
+      open.disabled = false;
+    }
+
+    return;
+  }
+
+
+  // Aanwezigheid opslaan.
+
+  const save = event.target.closest(
+    '[data-dsc-attendance-save]'
+  );
+
+  if (!save) return;
+
+  const id = save.dataset.dscAttendanceSave;
+
+  const panel = save.closest(
+    '[data-dsc-attendance-panel]'
+  );
+
+  if (!panel) return;
+
+  save.disabled = true;
+
+  try {
+    await dscSaveAttendance(id, panel);
+    await renderAdmin();
+
+  } catch (error) {
+    console.error(
+      'Aanwezigheid opslaan:',
+      error
+    );
+
+    toast(
+      `Opslaan mislukt: ${error.message}`
+    );
+
+    save.disabled = false;
+  }
+});
