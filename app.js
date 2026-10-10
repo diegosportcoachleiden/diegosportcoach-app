@@ -3448,3 +3448,220 @@ document.addEventListener('click', async event => {
     save.disabled = false;
   }
 });
+
+
+/* DiegoSportCoach - Weekoverzicht en totaaloverzicht (alleen Beheer)
+   Voeg dit blok helemaal onderaan app.js toe, NA de aanwezigheidsmodule.
+   Dit onderdeel leest alleen uit Supabase; het wijzigt geen inschrijvingen of tegoeden.
+*/
+(() => {
+  const START_DATUM = '2026-10-05';
+  const PER_PAGINA = 1000;
+  let gegevens = null;
+  let bezig = false;
+
+  const veilig = (waarde) => String(waarde ?? '').replace(/[&<>"']/g, (teken) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[teken]));
+  const normaal = (waarde) => String(waarde ?? '').trim().replace(/\s+/g, ' ')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('nl-NL');
+  const datumString = (datum) => `${datum.getFullYear()}-${String(datum.getMonth() + 1).padStart(2, '0')}-${String(datum.getDate()).padStart(2, '0')}`;
+  const datumObject = (tekst) => new Date(`${tekst}T12:00:00`);
+  const weekMaandag = (tekst) => {
+    const d = datumObject(tekst);
+    d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+    return datumString(d);
+  };
+  const plusDagen = (tekst, aantal) => {
+    const d = datumObject(tekst);
+    d.setDate(d.getDate() + aantal);
+    return datumString(d);
+  };
+  const nlDatum = (tekst) => datumObject(tekst).toLocaleDateString('nl-NL');
+
+  async function leesAlles(tabel, velden, sorteerKolom) {
+    const alleRijen = [];
+    for (let begin = 0; ; begin += PER_PAGINA) {
+      const { data, error } = await supabaseClient.from(tabel)
+        .select(velden)
+        .order(sorteerKolom, { ascending: true })
+        .range(begin, begin + PER_PAGINA - 1);
+      if (error) throw new Error(`${tabel}: ${error.message}`);
+      alleRijen.push(...(data || []));
+      if (!data || data.length < PER_PAGINA) break;
+    }
+    return alleRijen;
+  }
+
+  async function haalGegevensOp() {
+    const [lessen, aanwezigheid, historie, profielen] = await Promise.all([
+      leesAlles('dsc_closed_lessons', 'id,lesson_date,lesson_label', 'id'),
+      leesAlles('dsc_attendance_entries', 'id,closed_lesson_id,participant_key,participant_user_id,participant_name,present', 'id'),
+      leesAlles('dsc_historical_attendance', 'source_row,first_name,last_name,historic_total,linked_user_id', 'source_row'),
+      leesAlles('profiles', 'id,name', 'id')
+    ]);
+
+    const profielenPerId = new Map(profielen.map(p => [String(p.id), p]));
+    const profielIdsPerNaam = new Map();
+    for (const p of profielen) {
+      const n = normaal(p.name);
+      if (!profielIdsPerNaam.has(n)) profielIdsPerNaam.set(n, []);
+      profielIdsPerNaam.get(n).push(String(p.id));
+    }
+    const deelnemers = new Map();
+    function bepaalSleutel(id, naam) {
+      if (id) return `u:${id}`;
+      const matches = profielIdsPerNaam.get(normaal(naam)) || [];
+      if (matches.length === 1) return `u:${matches[0]}`;
+      return `n:${normaal(naam)}`;
+    }
+    function deelnemer(sleutel, naam) {
+      if (!deelnemers.has(sleutel)) {
+        const id = sleutel.startsWith('u:') ? sleutel.slice(2) : null;
+        deelnemers.set(sleutel, {
+          naam: profielenPerId.get(id)?.name || naam || 'Onbekend',
+          historisch: 0,
+          datums: [],
+          nietGekoppeld: false
+        });
+      }
+      return deelnemers.get(sleutel);
+    }
+    for (const p of profielen) deelnemer(`u:${p.id}`, p.name);
+
+    for (const rij of historie) {
+      const naam = [rij.first_name, rij.last_name].filter(Boolean).join(' ').trim()
+        || `Historische rij ${rij.source_row}`;
+      const sleutel = bepaalSleutel(rij.linked_user_id, naam);
+      const item = deelnemer(sleutel, naam);
+      item.historisch += Number(rij.historic_total) || 0;
+      if (sleutel.startsWith('n:')) item.nietGekoppeld = true;
+    }
+
+    const lesDatum = new Map(lessen.map(l => [String(l.id), l.lesson_date]));
+    // Een deelnemer telt maximaal één keer per afgesloten training.
+    const uniekeRegistraties = new Map();
+    for (const rij of aanwezigheid) {
+      const sleutel = bepaalSleutel(rij.participant_user_id, rij.participant_name);
+      const uniek = `${rij.closed_lesson_id}|${sleutel}`;
+      uniekeRegistraties.set(uniek, { ...rij, sleutel });
+    }
+    for (const rij of uniekeRegistraties.values()) {
+      const datum = lesDatum.get(String(rij.closed_lesson_id));
+      if (!datum || datum < START_DATUM || rij.present !== true) continue;
+      deelnemer(rij.sleutel, rij.participant_name).datums.push(datum);
+    }
+    return [...deelnemers.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
+  }
+
+  function maakTabel(koppen, rijen) {
+    if (!rijen.length) return '<p>Geen registraties voor dit overzicht.</p>';
+    return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left">
+      <thead><tr>${koppen.map(k => `<th style="padding:8px;border-bottom:1px solid #aaa">${veilig(k)}</th>`).join('')}</tr></thead>
+      <tbody>${rijen.map(r => `<tr>${r.map(c => `<td style="padding:8px;border-bottom:1px solid #ddd">${veilig(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  function csvDownload(bestandsnaam, koppen, rijen) {
+    const cel = (waarde) => {
+      let tekst = String(waarde ?? '');
+      // Voorkom dat Excel deelnemersnamen als formules uitvoert.
+      if (/^[\s]*[=+@\-]/.test(tekst) && !/^-?\d+(?:[.,]\d+)?$/.test(tekst.trim())) tekst = `'${tekst}`;
+      return `"${tekst.replace(/"/g, '""')}"`;
+    };
+    const inhoud = '\ufeff' + [koppen, ...rijen].map(r => r.map(cel).join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([inhoud], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = bestandsnaam;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function tekenOverzichten() {
+    const vak = document.getElementById('dscReportContent');
+    const invoer = document.getElementById('dscReportDatum');
+    if (!vak || !invoer || !gegevens) return;
+    const maandag = weekMaandag(invoer.value || datumString(new Date()));
+    const zondag = plusDagen(maandag, 6);
+    const weekRijen = gegevens.map(d => [d.naam, d.datums.filter(x => x >= maandag && x <= zondag).length])
+      .filter(r => r[1] > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl'));
+    const totaalRijen = gegevens.map(d => [
+      d.naam + (d.nietGekoppeld ? ' (historie niet gekoppeld)' : ''),
+      d.historisch, d.datums.length, d.historisch + d.datums.length
+    ]);
+    vak.innerHTML = `
+      <h4>📅 Weekoverzicht: ${nlDatum(maandag)} t/m ${nlDatum(zondag)}</h4>
+      <p><strong>${weekRijen.reduce((som, r) => som + r[1], 0)}</strong> aanwezigheden, verdeeld over <strong>${weekRijen.length}</strong> deelnemers.</p>
+      ${maakTabel(['Deelnemer', 'Trainingen deze week'], weekRijen)}
+      <button type="button" class="secondary" data-dsc-rapport="week" style="margin:12px 0 24px">⬇️ Weekoverzicht downloaden (Excel/CSV)</button>
+      <h4>📊 Totaaloverzicht per deelnemer</h4>
+      ${maakTabel(['Deelnemer', 'Oude Excel', 'Sinds 5 oktober', 'Totaal'], totaalRijen)}
+      <button type="button" class="secondary" data-dsc-rapport="totaal" style="margin-top:12px">⬇️ Totaaloverzicht downloaden (Excel/CSV)</button>
+      ${gegevens.some(d => d.nietGekoppeld) ? '<p style="font-size:.85em">Let op: sommige historische namen zijn nog niet gekoppeld aan een app-account. Controleer deze voordat je totalen samenvoegt.</p>' : ''}
+    `;
+    vak.querySelector('[data-dsc-rapport="week"]').onclick = () => csvDownload(
+      `DSC-week-${maandag}.csv`, ['Deelnemer', 'Week van', 'Week t/m', 'Aanwezig'],
+      weekRijen.map(([naam, aantal]) => [naam, maandag, zondag, aantal])
+    );
+    vak.querySelector('[data-dsc-rapport="totaal"]').onclick = () => csvDownload(
+      `DSC-totaal-${datumString(new Date())}.csv`,
+      ['Deelnemer', 'Historisch', 'Sinds 5 oktober 2026', 'Totaal'], totaalRijen
+    );
+  }
+
+  async function openRapport(ververs = false) {
+    const status = document.getElementById('dscReportStatus');
+    const vak = document.getElementById('dscReportContent');
+    if (!status || !vak || bezig) return;
+    if (ververs) gegevens = null;
+    if (!gegevens) {
+      bezig = true;
+      status.textContent = 'Gegevens laden…';
+      try {
+        gegevens = await haalGegevensOp();
+        status.textContent = 'Bijgewerkt. Alleen afgesloten trainingen tellen mee.';
+      } catch (fout) {
+        console.error('Aanwezigheidsoverzichten:', fout);
+        status.textContent = `Ophalen mislukt: ${fout.message}`;
+        bezig = false;
+        return;
+      }
+      bezig = false;
+    }
+    tekenOverzichten();
+  }
+
+  function plaatsRapport() {
+    if (!isAdmin || document.getElementById('dscRapportBlok')) return;
+    const lessenVak = document.getElementById('adminLessons');
+    if (!lessenVak?.parentNode) return;
+    const blok = document.createElement('section');
+    blok.id = 'dscRapportBlok';
+    blok.style.cssText = 'padding:16px;margin:16px 0;border:1px solid #bbb;border-radius:12px';
+    blok.innerHTML = `
+      <h3>📊 Aanwezigheidsoverzichten</h3>
+      <p>Weekoverzicht en totaal per deelnemer. Alleen afgesloten trainingen tellen mee.</p>
+      <label>Datum in de gewenste week: <input id="dscReportDatum" type="date" value="${datumString(new Date())}" /></label>
+      <button type="button" class="secondary" id="dscReportOpen">Bekijk overzichten</button>
+      <button type="button" class="secondary" id="dscReportVervers">↻ Vernieuwen</button>
+      <p id="dscReportStatus" style="font-size:.9em"></p>
+      <div id="dscReportContent"></div>
+    `;
+    lessenVak.parentNode.insertBefore(blok, lessenVak);
+    blok.querySelector('#dscReportOpen').addEventListener('click', () => openRapport());
+    blok.querySelector('#dscReportVervers').addEventListener('click', () => openRapport(true));
+    blok.querySelector('#dscReportDatum').addEventListener('change', tekenOverzichten);
+  }
+
+  // Sluit aan op de bestaande Beheer-render, zonder die te vervangen.
+  const origineleRenderAdminVoorRapport = renderAdmin;
+  renderAdmin = async function (...args) {
+    const resultaat = await origineleRenderAdminVoorRapport.apply(this, args);
+    plaatsRapport();
+    return resultaat;
+  };
+  plaatsRapport();
+})();
