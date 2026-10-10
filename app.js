@@ -3665,3 +3665,691 @@ document.addEventListener('click', async event => {
   };
   plaatsRapport();
 })();
+
+
+/*
+ * DIEGOSPORTCOACH
+ * Meerdere mededelingen + rapport in Beheer
+ *
+ * Helemaal onderaan app.js toevoegen.
+ * Bestaande code laten staan.
+ *
+ * Vereist een id-kolom in de tabel announcements
+ * en beheerdersrechten in Supabase.
+ */
+
+(() => {
+  let bewerkId = null;
+  let adminBerichten = [];
+
+  const datumVandaag = () => {
+    const d = new Date();
+
+    return (
+      `${d.getFullYear()}-` +
+      `${String(d.getMonth() + 1).padStart(2, '0')}-` +
+      `${String(d.getDate()).padStart(2, '0')}`
+    );
+  };
+
+  const schoon = waarde =>
+    String(waarde ?? '').replace(/[&<>"']/g, teken => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[teken]));
+
+
+  /* =========================
+     MEDEDELINGEN VOOR KLANTEN
+  ========================= */
+
+  async function toonAlleMededelingen() {
+    const vak = document.getElementById(
+      'announcementBox'
+    );
+
+    if (!vak || !session?.user) return;
+
+    const vandaag = datumVandaag();
+
+    const { data, error } = await supabaseClient
+      .from('announcements')
+      .select(
+        'title,message,starts_at,ends_at,created_at'
+      )
+      .eq('active', true)
+      .lte('starts_at', vandaag)
+      .or(
+        `ends_at.is.null,ends_at.gte.${vandaag}`
+      )
+      .order('created_at', {
+        ascending: false
+      })
+      .limit(100);
+
+    if (error) {
+      console.error(
+        'Mededelingen ophalen:',
+        error
+      );
+      return;
+    }
+
+    const oudeTitel = vak.querySelector(
+      '#announcementTitle'
+    );
+
+    const oudeTekst = vak.querySelector(
+      '#announcementMessage'
+    );
+
+    if (oudeTitel) {
+      oudeTitel.style.display = 'none';
+    }
+
+    if (oudeTekst) {
+      oudeTekst.style.display = 'none';
+    }
+
+    let lijst = vak.querySelector(
+      '#dscAlleMededelingen'
+    );
+
+    if (!lijst) {
+      lijst = document.createElement('div');
+      lijst.id = 'dscAlleMededelingen';
+      vak.appendChild(lijst);
+    }
+
+    lijst.innerHTML = (data || [])
+      .map((bericht, index) => `
+        <article style="
+          padding:12px 0;
+          border-bottom:${
+            index < data.length - 1
+              ? '1px solid #ddd'
+              : '0'
+          };
+        ">
+          <strong style="
+            display:block;
+            margin-bottom:5px;
+          ">
+            ${schoon(bericht.title)}
+          </strong>
+
+          <div style="
+            white-space:pre-wrap;
+            overflow-wrap:anywhere;
+          ">
+            ${schoon(bericht.message)}
+          </div>
+        </article>
+      `)
+      .join('');
+
+    vak.classList.toggle(
+      'hidden',
+      !(data || []).length
+    );
+  }
+
+
+  /* =========================
+     MEDEDELINGEN OPNIEUW LADEN
+  ========================= */
+
+  const oorspronkelijkLoadData = loadData;
+
+  loadData = async function (...args) {
+    const resultaat =
+      await oorspronkelijkLoadData.apply(
+        this,
+        args
+      );
+
+    await toonAlleMededelingen();
+
+    return resultaat;
+  };
+
+
+  /* =========================
+     RAPPORT NAAR BEHEER
+  ========================= */
+
+  function zetRapportInBeheer() {
+    if (!isAdmin) return;
+
+    const beheer = document.getElementById(
+      'adminView'
+    );
+
+    const rapport = document.getElementById(
+      'dscRapportBlok'
+    );
+
+    if (!beheer || !rapport) return;
+
+    const trainingDetails = [
+      ...beheer.querySelectorAll('details')
+    ].find(details =>
+      /trainingsadministratie/i.test(
+        details.querySelector('summary')
+          ?.textContent || ''
+      )
+    );
+
+    const bestemming =
+      trainingDetails || beheer;
+
+    if (rapport.parentElement !== bestemming) {
+      bestemming.appendChild(rapport);
+    }
+  }
+
+
+  /* =========================
+     MEDEDELINGEN IN BEHEER
+  ========================= */
+
+  function mededelingenVak() {
+    const invoer = document.getElementById(
+      'adminAnnouncementTitle'
+    );
+
+    if (!invoer || !isAdmin) return null;
+
+    const details = invoer.closest('details');
+
+    const ouder =
+      details ||
+      invoer.closest('.card') ||
+      invoer.parentElement;
+
+    if (!ouder) return null;
+
+    let vak = document.getElementById(
+      'dscMededelingenBeheerLijst'
+    );
+
+    if (!vak) {
+      vak = document.createElement('section');
+
+      vak.id = 'dscMededelingenBeheerLijst';
+
+      vak.style.cssText = `
+        margin:18px 0;
+        padding:14px;
+        border:1px solid #ddd;
+        border-radius:12px;
+      `;
+
+      ouder.appendChild(vak);
+
+      vak.addEventListener(
+        'click',
+        verwerkLijstKlik
+      );
+    }
+
+    return vak;
+  }
+
+
+  /* =========================
+     FORMULIER LEEGMAKEN
+  ========================= */
+
+  function resetFormulier() {
+    bewerkId = null;
+
+    for (const id of [
+      'adminAnnouncementTitle',
+      'adminAnnouncementMessage',
+      'adminAnnouncementEnds'
+    ]) {
+      const veld = document.getElementById(id);
+
+      if (veld) veld.value = '';
+    }
+
+    const begin = document.getElementById(
+      'adminAnnouncementStarts'
+    );
+
+    if (begin) {
+      begin.value = datumVandaag();
+    }
+
+    const actief = document.getElementById(
+      'adminAnnouncementActive'
+    );
+
+    if (actief) {
+      actief.checked = true;
+    }
+
+    const knop = document.getElementById(
+      'saveAnnouncementBtn'
+    );
+
+    if (knop) {
+      knop.textContent = 'Mededeling toevoegen';
+    }
+  }
+
+
+  /* =========================
+     ALLE MEDEDELINGEN LADEN
+  ========================= */
+
+  async function laadBeheerMededelingen() {
+    const vak = mededelingenVak();
+
+    if (!vak) return;
+
+    vak.innerHTML = '<p>Mededelingen laden...</p>';
+
+    const { data, error } = await supabaseClient
+      .from('announcements')
+      .select(
+        'id,title,message,starts_at,ends_at,active,created_at'
+      )
+      .order('created_at', {
+        ascending: false
+      })
+      .limit(200);
+
+    if (error) {
+      console.error(
+        'Mededelingen in beheer:',
+        error
+      );
+
+      vak.textContent =
+        `Ophalen mislukt: ${error.message}`;
+
+      return;
+    }
+
+    adminBerichten = data || [];
+
+    const aantalActief = adminBerichten.filter(
+      b => b.active
+    ).length;
+
+    vak.innerHTML = `
+      <h3 style="margin:0 0 8px">
+        📢 Geplaatste mededelingen
+        (${adminBerichten.length})
+      </h3>
+
+      <p style="
+        margin:0 0 12px;
+        font-size:.9em;
+      ">
+        ${aantalActief} ingeschakeld.
+        Alleen berichten binnen hun datumperiode
+        verschijnen in de app.
+      </p>
+
+      ${
+        adminBerichten.length
+          ? adminBerichten.map(b => `
+              <div style="
+                padding:12px 0;
+                border-top:1px solid #ddd;
+                overflow-wrap:anywhere;
+              ">
+
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  gap:8px;
+                  align-items:start;
+                ">
+
+                  <strong>
+                    ${schoon(b.title)}
+                  </strong>
+
+                  <span style="font-size:.8em">
+                    ${
+                      b.active
+                        ? '🟢 Actief'
+                        : '⚪ Uitgeschakeld'
+                    }
+                  </span>
+
+                </div>
+
+                <p style="
+                  white-space:pre-wrap;
+                  margin:7px 0;
+                ">
+                  ${schoon(b.message)}
+                </p>
+
+                <p style="
+                  font-size:.8em;
+                  color:#666;
+                  margin:6px 0;
+                ">
+                  ${schoon(b.starts_at || '—')}
+                  t/m
+                  ${schoon(
+                    b.ends_at || 'geen einddatum'
+                  )}
+                </p>
+
+                <button
+                  type="button"
+                  class="secondary"
+                  data-dsc-ann-edit="${schoon(b.id)}"
+                >
+                  ✏️ Bewerken
+                </button>
+
+                <button
+                  type="button"
+                  class="secondary"
+                  data-dsc-ann-toggle="${schoon(b.id)}"
+                >
+                  ${
+                    b.active
+                      ? 'Verbergen'
+                      : 'Activeren'
+                  }
+                </button>
+
+                <button
+                  type="button"
+                  class="danger"
+                  data-dsc-ann-delete="${schoon(b.id)}"
+                >
+                  Verwijderen
+                </button>
+
+              </div>
+            `).join('')
+          : `
+            <p>
+              Er zijn nog geen mededelingen geplaatst.
+            </p>
+          `
+      }
+    `;
+  }
+
+
+  /* =========================
+     BEWERKEN / VERWIJDEREN
+  ========================= */
+
+  async function verwerkLijstKlik(event) {
+    const knop = event.target.closest('button');
+
+    if (!knop || !isAdmin) return;
+
+    const id =
+      knop.dataset.dscAnnEdit ||
+      knop.dataset.dscAnnToggle ||
+      knop.dataset.dscAnnDelete;
+
+    if (!id) return;
+
+    const bericht = adminBerichten.find(
+      b => String(b.id) === String(id)
+    );
+
+    if (!bericht) return;
+
+    if (knop.dataset.dscAnnEdit) {
+      bewerkId = id;
+
+      document.getElementById(
+        'adminAnnouncementTitle'
+      ).value = bericht.title || '';
+
+      document.getElementById(
+        'adminAnnouncementMessage'
+      ).value = bericht.message || '';
+
+      document.getElementById(
+        'adminAnnouncementStarts'
+      ).value = String(
+        bericht.starts_at || ''
+      ).slice(0, 10);
+
+      document.getElementById(
+        'adminAnnouncementEnds'
+      ).value = String(
+        bericht.ends_at || ''
+      ).slice(0, 10);
+
+      document.getElementById(
+        'adminAnnouncementActive'
+      ).checked = !!bericht.active;
+
+      const opslaan = document.getElementById(
+        'saveAnnouncementBtn'
+      );
+
+      if (opslaan) {
+        opslaan.textContent = 'Wijzigingen opslaan';
+      }
+
+      document.getElementById(
+        'adminAnnouncementTitle'
+      ).scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      return;
+    }
+
+    if (
+      knop.dataset.dscAnnDelete &&
+      !confirm(
+        `Mededeling "${bericht.title}" definitief verwijderen?`
+      )
+    ) {
+      return;
+    }
+
+    knop.disabled = true;
+
+    const isVerwijderen =
+      !!knop.dataset.dscAnnDelete;
+
+    const verzoek = isVerwijderen
+      ? supabaseClient
+          .from('announcements')
+          .delete()
+          .eq('id', id)
+      : supabaseClient
+          .from('announcements')
+          .update({
+            active: !bericht.active
+          })
+          .eq('id', id);
+
+    const { error } = await verzoek;
+
+    if (error) {
+      knop.disabled = false;
+
+      toast(
+        `Aanpassen mislukt: ${error.message}`
+      );
+
+      return;
+    }
+
+    if (bewerkId === id) {
+      resetFormulier();
+    }
+
+    await laadBeheerMededelingen();
+    await loadData();
+
+    toast(
+      isVerwijderen
+        ? 'Mededeling verwijderd'
+        : 'Mededeling aangepast'
+    );
+  }
+
+
+  /* =========================
+     NIEUWE MEDEDELING OPSLAAN
+  ========================= */
+
+  async function slaMeerdereMededelingenOp() {
+    if (!isAdmin || !session?.user) {
+      toast('Geen beheerdersrechten');
+      return;
+    }
+
+    const titel = document.getElementById(
+      'adminAnnouncementTitle'
+    )?.value.trim() || '';
+
+    const tekst = document.getElementById(
+      'adminAnnouncementMessage'
+    )?.value.trim() || '';
+
+    const begin = document.getElementById(
+      'adminAnnouncementStarts'
+    )?.value || datumVandaag();
+
+    const einde = document.getElementById(
+      'adminAnnouncementEnds'
+    )?.value || null;
+
+    const actief = !!document.getElementById(
+      'adminAnnouncementActive'
+    )?.checked;
+
+    if (!titel || !tekst) {
+      toast('Vul titel en bericht in');
+      return;
+    }
+
+    if (einde && einde < begin) {
+      toast(
+        'Einddatum ligt vóór de begindatum'
+      );
+      return;
+    }
+
+    const knop = document.getElementById(
+      'saveAnnouncementBtn'
+    );
+
+    if (knop) {
+      knop.disabled = true;
+    }
+
+    try {
+      const inhoud = {
+        title: titel,
+        message: tekst,
+        starts_at: begin,
+        ends_at: einde,
+        active: actief
+      };
+
+      const { error } = bewerkId
+        ? await supabaseClient
+            .from('announcements')
+            .update(inhoud)
+            .eq('id', bewerkId)
+        : await supabaseClient
+            .from('announcements')
+            .insert(inhoud);
+
+      if (error) throw error;
+
+      resetFormulier();
+
+      await laadBeheerMededelingen();
+      await loadData();
+
+      toast('Mededeling opgeslagen');
+
+    } catch (fout) {
+      console.error(
+        'Mededeling opslaan:',
+        fout
+      );
+
+      toast(
+        `Opslaan mislukt: ${fout.message}`
+      );
+
+    } finally {
+      if (knop) {
+        knop.disabled = false;
+      }
+    }
+  }
+
+
+  /* =========================
+     BESTAANDE KNOPPEN KOPPELEN
+  ========================= */
+
+  const opslaanKnop = document.getElementById(
+    'saveAnnouncementBtn'
+  );
+
+  if (opslaanKnop) {
+    opslaanKnop.onclick =
+      slaMeerdereMededelingenOp;
+  }
+
+  const wissenKnop = document.getElementById(
+    'deleteAnnouncementBtn'
+  );
+
+  if (wissenKnop) {
+    wissenKnop.textContent =
+      'Formulier leegmaken';
+
+    wissenKnop.onclick = event => {
+      event.preventDefault();
+      resetFormulier();
+    };
+  }
+
+
+  /* =========================
+     BEHEER BIJWERKEN
+  ========================= */
+
+  const voorgaandeRenderAdmin = renderAdmin;
+
+  renderAdmin = async function (...args) {
+    const resultaat =
+      await voorgaandeRenderAdmin.apply(
+        this,
+        args
+      );
+
+    zetRapportInBeheer();
+
+    await laadBeheerMededelingen();
+
+    return resultaat;
+  };
+
+  zetRapportInBeheer();
+
+})();
+
