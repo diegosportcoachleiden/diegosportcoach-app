@@ -3780,13 +3780,7 @@ document.addEventListener('click', async event => {
           ">
             ${schoon(bericht.title)}
           </strong>
-
-          <div style="
-            white-space:pre-wrap;
-            overflow-wrap:anywhere;
-          ">
-            ${schoon(bericht.message)}
-          </div>
+<div style="white-space:pre-line; overflow-wrap:anywhere; text-align:left;">${schoon(bericht.message).trim()}</div>
         </article>
       `)
       .join('');
