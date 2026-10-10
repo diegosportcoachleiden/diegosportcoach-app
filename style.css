@@ -755,3 +755,29 @@ textarea {
   grid-column: 1 / -1;
   grid-row: 3;
 }
+
+
+/* Mededelingen netjes linksboven */
+#announcementBox {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 18px 20px !important;
+  text-align: left !important;
+}
+
+#dscAlleMededelingen {
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+
+#dscAlleMededelingen article {
+  margin: 0 !important;
+  padding: 8px 0 !important;
+  text-align: left !important;
+}
+
+#dscAlleMededelingen strong {
+  margin-bottom: 6px !important;
+}
