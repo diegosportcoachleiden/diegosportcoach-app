@@ -3837,8 +3837,10 @@ document.addEventListener('click', async event => {
       )
     );
 
-    const bestemming =
-      trainingDetails || beheer;
+   const bestemming =
+  trainingDetails?.querySelector('section') ||
+  trainingDetails ||
+  beheer;
 
     if (rapport.parentElement !== bestemming) {
       bestemming.appendChild(rapport);
