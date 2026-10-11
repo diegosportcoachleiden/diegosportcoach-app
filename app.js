@@ -570,7 +570,11 @@ async function renderLessons() {
 const startOfWeek = new Date(now);
 const day = now.getDay();
 
-const daysSinceMonday = day === 0 ? 6 : day - 1;
+const daysSinceMonday =
+  day === 0 && (now.getHours() > 11 ||
+    (now.getHours() === 11 && now.getMinutes() >= 5))
+    ? -1
+    : day === 0 ? 6 : day - 1;
 
 startOfWeek.setDate(now.getDate() - daysSinceMonday);
 startOfWeek.setHours(0, 0, 0, 0);
@@ -611,16 +615,7 @@ if (!displayLessons.length) {
 }
 
    // Bepaal het begin van deze week (maandag)
-  const dscWeekStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  );
-
-  dscWeekStart.setDate(
-    dscWeekStart.getDate() -
-    ((dscWeekStart.getDay() + 6) % 7)
-  );
+  const dscWeekStart = new Date(startOfWeek);
 
   const dscNextWeek = new Date(dscWeekStart);
   dscNextWeek.setDate(dscNextWeek.getDate() + 7);
