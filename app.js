@@ -1046,7 +1046,10 @@ async function toggleWaitlist(id) {
   const waiting = myWaitlist.some(
     waitId => String(waitId) === String(id)
   );
-
+if (!waiting && Number(profile?.rides || 0) <= 0) {
+  toast('Je hebt geen trainingstegoed. Je kunt niet op de reservelijst.');
+  return;
+}
   const { error } = await supabaseClient.rpc(
     waiting
       ? 'cancel_waitlist'
