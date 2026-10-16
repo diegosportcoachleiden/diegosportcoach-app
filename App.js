@@ -1538,7 +1538,110 @@ async function addWeekLessons() {
   await renderAdmin();
   render();
 }
+async function editLesson(id) {
+  if (!isAdmin) {
+    toast('Geen beheerdersrechten');
+    return;
+  }
 
+  const lesson = lessons.find(
+    l => String(l.id) === String(id)
+  );
+
+  if (!lesson) {
+    toast('Training niet gevonden');
+    return;
+  }
+
+  const lessonStart = new Date(
+    `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
+  );
+
+  if (lessonStart <= new Date()) {
+    toast('Afgelopen trainingen kun je niet wijzigen');
+    return;
+  }
+
+  const date = prompt('Datum (JJJJ-MM-DD):', lesson.lesson_date);
+  if (date === null) return;
+
+  const time = prompt(
+    'Starttijd (UU:MM):',
+    String(lesson.lesson_time).slice(0, 5)
+  );
+  if (time === null) return;
+
+  const location = prompt('Locatie:', lesson.location);
+  if (location === null) return;
+
+  const maximum = prompt(
+    'Maximumaantal deelnemers:',
+    lesson.max_participants
+  );
+  if (maximum === null) return;
+
+  const maxParticipants = Number(maximum);
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+    !/^\d{2}:\d{2}$/.test(time) ||
+    !Number.isFinite(new Date(`${date}T${time}:00`).getTime()) ||
+    new Date(`${date}T${time}:00`) <= new Date() ||
+    !location.trim() ||
+    !Number.isInteger(maxParticipants) ||
+    maxParticipants < 1
+  ) {
+    toast('Controleer datum, tijd, locatie en maximum');
+    return;
+  }
+
+  const { count, error: countError } = await supabaseClient
+    .from('bookings')
+    .select('user_id', { count: 'exact', head: true })
+    .eq('lesson_id', id);
+
+  if (countError) {
+    toast('Aantal inschrijvingen controleren mislukt');
+    return;
+  }
+
+  if (maxParticipants < (count || 0)) {
+    toast('Maximum mag niet lager zijn dan het aantal inschrijvingen');
+    return;
+  }
+
+  const confirmed = confirm(
+    'Training wijzigen?\n\n' +
+    `${date} om ${time}\n` +
+    `${location.trim()}\n` +
+    `Maximaal ${maxParticipants} deelnemers\n\n` +
+    'Bestaande inschrijvingen blijven behouden.'
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient
+    .from('lessons')
+    .update({
+      lesson_date: date,
+      lesson_time: time,
+      location: location.trim(),
+      max_participants: maxParticipants
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error(error);
+    toast('Training wijzigen mislukt: ' + error.message);
+    return;
+  }
+
+  toast('Training gewijzigd');
+
+  await loadData();
+  await renderAdmin();
+  render();
+}
 /* =========================
    BEHEER TONEN
 ========================= */
@@ -2035,6 +2138,13 @@ ${
   ) > new Date()
     ? `
       <div style="margin-top:12px;">
+      <button
+  type="button"
+  class="secondary"
+  onclick="editLesson('${l.id}')"
+>
+  ✏️ Training wijzigen
+</button>
         <button
           type="button"
           class="danger"
