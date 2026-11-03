@@ -1108,11 +1108,18 @@ function renderMine() {
 
   if (!box) return;
 
-  const mine = lessons.filter(
-    l => myBookings.some(
+const mine = lessons.filter(l => {
+  const lessonStart = new Date(
+    `${l.lesson_date}T${String(l.lesson_time).slice(0, 5)}:00`
+  );
+
+  return (
+    lessonStart > new Date() &&
+    myBookings.some(
       id => String(id) === String(l.id)
     )
   );
+});
 
   box.innerHTML = `
     <div class="card">
