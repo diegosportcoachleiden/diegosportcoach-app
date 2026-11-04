@@ -758,7 +758,7 @@ if (!displayLessons.length) {
     text-align:left;
   "
 >
-  👥 Bekijk deelnemers (${normalCount})
+ 👥 Bekijk deelnemers (${count})
 </button>
 
 <div
@@ -837,9 +837,22 @@ $$('[data-attendees]').forEach(button => {
 
       if (error) throw error;
 
-      const names = (data || []).map(
-        row => row.participant_name
-      );
+      const lesson = lessons.find(l => String(l.id) === String(id));
+
+const trialNames = lesson
+  ? trialLessons
+      .filter(trial =>
+        trial.trial_date === lesson.lesson_date &&
+        String(trial.trial_time || '').slice(0, 5) ===
+        String(lesson.lesson_time || '').slice(0, 5)
+      )
+      .map(trial => `${trial.name} (proefles)`)
+  : [];
+
+const names = [
+  ...(data || []).map(row => row.participant_name),
+  ...trialNames
+];
 
       listBox.innerHTML = names.length
         ? names.map(name =>
