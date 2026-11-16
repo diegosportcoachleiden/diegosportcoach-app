@@ -492,9 +492,51 @@ async function signOut() {
    APP TONEN
 ========================= */
 
+
+let dscStatsGeladenVoor = null;
+
+async function laadSportprestaties() {
+  if (!profile?.id || dscStatsGeladenVoor === profile.id) return;
+
+  const gebruikerId = profile.id;
+  dscStatsGeladenVoor = gebruikerId;
+
+  const { data, error } = await supabaseClient.rpc(
+    'dsc_my_training_totals'
+  );
+
+  if (profile?.id !== gebruikerId) return;
+
+  if (error) {
+    console.error('Sportprestaties ophalen mislukt:', error);
+    dscStatsGeladenVoor = null;
+    return;
+  }
+
+  const resultaat = Array.isArray(data) ? data[0] : data;
+  const totaal = Number(resultaat?.totaal_trainingen || 0);
+  const volgendeMijlpaal = (Math.floor(totaal / 25) + 1) * 25;
+
+  const teller = $('#dscTotaalTrainingen');
+  const tekst = $('#dscMotivatieTekst');
+  const balk = $('#dscMotivatieBalk');
+
+  if (teller) teller.textContent = totaal;
+
+  if (tekst) {
+    tekst.textContent = totaal === 0
+      ? 'Jouw sportieve avontuur begint hier! 💪'
+      : `Geweldig bezig! Nog ${volgendeMijlpaal - totaal} trainingen tot de ${volgendeMijlpaal}! 💪`;
+  }
+
+  if (balk) {
+    balk.style.width = `${((totaal % 25) / 25) * 100}%`;
+  }
+}
+
 function render() {
   if (!profile) return;
-
+laadSportprestaties();
   const welcomeName = $('#welcomeName');
 
   if (welcomeName) {
