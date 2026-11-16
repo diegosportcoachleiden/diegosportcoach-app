@@ -2100,9 +2100,9 @@ async function renderAdmin() {
             const member =
               membersById[String(booking.user_id)];
 
-            return member
-              ? member.name || member.email
-              : 'Onbekende deelnemer';
+          return member
+  ? `${member.name || member.email} (${member.rides ?? 0} tegoed)`
+  : 'Onbekende deelnemer';
           });
 
           const trialAttendees = (trialLessons || [])
