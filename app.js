@@ -2227,12 +2227,46 @@ ${
           `;
         })
       );
+const now = new Date();
 
-      adminLessons.innerHTML = lessonItems.join('');
-    } else {
-      adminLessons.innerHTML =
-        '<p>Nog geen trainingen.</p>';
-    }
+const isPast = lesson => {
+  const start = new Date(
+    `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
+  );
+  return start <= now;
+};
+
+const upcomingItems = lessonItems.filter(
+  (_, i) => !isPast(lessons[i])
+);
+
+const pastItems = lessonItems.filter(
+  (_, i) => isPast(lessons[i])
+);
+
+adminLessons.innerHTML =
+  upcomingItems.join('') ||
+  '<p>Geen komende trainingen.</p>';
+
+const adminPastLessons = $('#adminPastLessons');
+
+if (adminPastLessons) {
+  adminPastLessons.innerHTML =
+    pastItems.reverse().join('') ||
+    '<p>Geen trainingen geweest.</p>';
+}
+
+} else {
+  adminLessons.innerHTML =
+    '<p>Geen komende trainingen.</p>';
+
+  const adminPastLessons = $('#adminPastLessons');
+
+  if (adminPastLessons) {
+    adminPastLessons.innerHTML =
+      '<p>Geen trainingen geweest.</p>';
+  }
+}
   }
 }
 
