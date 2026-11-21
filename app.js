@@ -2227,14 +2227,21 @@ ${
           `;
         })
       );
-const now = new Date();
+const { data: afgeslotenTrainingen, error: afsluitFout } =
+  await supabaseClient
+    .from('dsc_closed_lessons')
+    .select('lesson_id');
 
-const isPast = lesson => {
-  const start = new Date(
-    `${lesson.lesson_date}T${String(lesson.lesson_time).slice(0, 5)}:00`
-  );
-  return start <= now;
-};
+if (afsluitFout) {
+  throw afsluitFout;
+}
+
+const afgeslotenIds = new Set(
+  (afgeslotenTrainingen || []).map(x => String(x.lesson_id))
+);
+
+const isPast = lesson =>
+  afgeslotenIds.has(String(lesson.id));
 
 const upcomingItems = lessonItems.filter(
   (_, i) => !isPast(lessons[i])
