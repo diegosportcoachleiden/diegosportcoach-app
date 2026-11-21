@@ -3135,7 +3135,7 @@ renderAdmin = async function (...args) {
   if (!isAdmin || !session?.user) return;
 
   const cards = [
-    ...document.querySelectorAll('#adminLessons > .lesson')
+...document.querySelectorAll('#adminLessons > .lesson, #adminPastLessons > .lesson')
   ];
 
   if (!cards.length) return;
