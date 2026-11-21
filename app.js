@@ -2140,7 +2140,7 @@ const waitlistNames = ws.map(waiting => {
           const trialCount = trialAttendees.length;
 
           return `
-            <div class="lesson">
+            <div class="lesson" data-lesson-id="${esc(l.id)}">
 
               <div>
 
@@ -3164,7 +3164,7 @@ renderAdmin = async function (...args) {
   }
 
   cards.forEach((card, index) => {
-    const lesson = lessons[index];
+   const lesson = lessons.find(l => String(l.id) === String(card.dataset.lessonId));
 
     if (
       !lesson ||
